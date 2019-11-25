@@ -195,8 +195,8 @@ public class GameManagerScript : MonoBehaviour
                 relevantQueue.Enqueue((byte)'\n');
             }
             else if (char.IsDigit(c)) {
-                //relevantQueue.Enqueue((byte)(c- '0'));
-                relevantQueue.Enqueue((byte)(c));
+                relevantQueue.Enqueue((byte)(c - '0'));
+                //relevantQueue.Enqueue((byte)(c));
             }
             else
             {

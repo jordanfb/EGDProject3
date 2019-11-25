@@ -48,7 +48,6 @@ public class RecieveIAm : RecieveCommand
                 break;
             default:
                 break;
-
         }
     }
 
@@ -115,7 +114,8 @@ public class CreateTrain : RecieveCommand
     public void executePopulatedMessage()
     {
 
-        //sets the initial radians to whoever sent the train
+        //sets the initial radians to whoever sent the trai.
+        Debug.Log(senderID);
         float radians = GameManagerScript.instance.playerInfoDictionary[senderID].radians;
         TrainData newTrainData = new TrainData(rightText, leftText, senderID, recieverID, radians);
 
@@ -275,35 +275,38 @@ public class AnswerTrain : RecieveCommand
     {
 
 
-        if (GameManagerScript.instance.trainDictionary.ContainsKey(trainID)) {
+        if (GameManagerScript.instance.trainDictionary.ContainsKey(trainID))
+        {
             //train indended for them
             if (senderID == GameManagerScript.instance.trainDictionary[trainID].reciever)
             {
                 //spawn train on answer track
-                if (isRight == 1) {
+                if (isRight == 1)
+                {
                     GameManagerScript.instance.trainDictionary[trainID].answer = GameManagerScript.instance.trainDictionary[trainID].rightText;
                 }
-                else {
+                else
+                {
                     GameManagerScript.instance.trainDictionary[trainID].answer = GameManagerScript.instance.trainDictionary[trainID].leftText;
-
                 }
                 SenderHelper.instance.MoveTrainToAnswerTrack(trainID);
                 SenderHelper.instance.ReleaseTrainLights(trainID);
 
             }
-            else {
+            else
+            {
                 if (GameManagerScript.instance.trainDictionary[trainID].answer == null)
                 {
                     //unpause train on not answertrack
                     SenderHelper.instance.ReleaseTrainLights(trainID);
                 }
-                else {
+                else
+                {
                     SenderHelper.instance.ReleaseTrainLights(trainID);
                     //unpause train on answertrack
                 }
             }
         }
-
     }
 
     public void readNextByte(byte b)
@@ -393,7 +396,8 @@ public class ReadError : RecieveCommand
             Debug.LogWarning("debug message: ascii: " + (byte)debugMessage[0] + ", char: " + debugMessage);
 
         }
-        else {
+        else
+        {
             Debug.LogWarning("length of debug message is 0");
 
         }

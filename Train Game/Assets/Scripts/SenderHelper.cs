@@ -15,15 +15,18 @@ public class SenderHelper : MonoBehaviour
         instance = this;
     }
 
-    public byte getNumberAsByte(int number) {
+    public byte getNumberAsByte(int number)
+    {
         return (byte)number;
         // return (byte)((char)number - (char)'0');
     }
 
-    public byte[] generateCharArray(string message) {
+    public byte[] generateCharArray(string message)
+    {
 
         List<byte> returnList = new List<byte>();
-        foreach (char c in message) {
+        foreach (char c in message)
+        {
             returnList.Add((byte)c);
             if (c == '\0')
             {
@@ -35,11 +38,12 @@ public class SenderHelper : MonoBehaviour
         return returnList.ToArray();
 
     }
-    public void WhoAreYou(SerialPort dest) {
+    public void WhoAreYou(SerialPort dest)
+    {
 
 
         GameManagerScript.instance.log("sending who are you to port: " + dest.PortName);
-        List<byte> message = new List<byte> {(byte)'a', 0 };
+        List<byte> message = new List<byte> { (byte)'a', 0 };
         //foreach (byte b in message) {
         //    Debug.Log("ascii: " + b + ", char: " + (char)b);
         //}
@@ -50,19 +54,21 @@ public class SenderHelper : MonoBehaviour
     public void CreateTrainLights(int senderID, int recieverID, int trainID)
     {
         //example of how i'm sending it to the strip
-        byte[] message = {(byte)'b', (byte)senderID, (byte)recieverID, (byte)trainID, 0};
+        byte[] message = { (byte)'b', (byte)senderID, (byte)recieverID, (byte)trainID, 0 };
 
         GameManagerScript.instance.addDebugTrain(trainID);
         GameManagerScript.instance.log("Creating train on arduino from: " + senderID +
             " to " + recieverID + " with id: " + trainID);
-        if (GameManagerScript.instance.portDictionary.ContainsKey(6)) {
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6))
+        {
             GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
         }
-        else {
+        else
+        {
             GameManagerScript.instance.log("LED arduino not set");
         }
-        
-        
+
+
     }
     public void PauseTrainLights(int stopperID, int trainID)
     {
@@ -78,9 +84,10 @@ public class SenderHelper : MonoBehaviour
 
     }
 
-    public void MoveTrainToAnswerTrack(int trainID) {
+    public void MoveTrainToAnswerTrack(int trainID)
+    {
         GameManagerScript.instance.trainDictionary[trainID].isOnAnswerStrip = true;
-        
+
         GameManagerScript.instance.log("moving train: " + trainID + " to the answer track");
     }
     public void DestroyTrainLights(int trainID)
@@ -101,15 +108,17 @@ public class SenderHelper : MonoBehaviour
     {
 
     }
-    public void DisplayTrainDontAnswer(int stopper, int senderID, int recieverID, string optionA, string optionB, string answer) {
-        GameManagerScript.instance.log("displaying train that DOESN'T need to be answered\n"+
-                "sender id: " + senderID + ", recieverID: " + recieverID + "\n"+
+    public void DisplayTrainDontAnswer(int stopper, int senderID, int recieverID, string optionA, string optionB, string answer)
+    {
+        GameManagerScript.instance.log("displaying train that DOESN'T need to be answered\n" +
+                "sender id: " + senderID + ", recieverID: " + recieverID + "\n" +
                  "optionA" + optionA + ", optionB" + optionB + "\n" +
                  "answer: " + answer
                 );
 
-        List<byte> command = new List<byte> { (byte)'g', getNumberAsByte(senderID), getNumberAsByte(recieverID)};
-        foreach (char c in optionA) {
+        List<byte> command = new List<byte> { (byte)'g', getNumberAsByte(senderID), getNumberAsByte(recieverID) };
+        foreach (char c in optionA)
+        {
             command.Add((byte)c);
         }
         command.Add((byte)'\n');
@@ -156,10 +165,13 @@ public class SenderHelper : MonoBehaviour
 
 
     }
-    public void SendKeywords(int stopper, int numKeywords, List<string> keywords) {
+    public void SendKeywords(int stopper, int numKeywords, List<string> keywords)
+    {
         List<byte> command = new List<byte> { (byte)'l', getNumberAsByte(numKeywords) };
-        foreach (string s in keywords) {
-            foreach (char c in s) {
+        foreach (string s in keywords)
+        {
+            foreach (char c in s)
+            {
                 command.Add((byte)c);
             }
             command.Add((byte)'\n');
