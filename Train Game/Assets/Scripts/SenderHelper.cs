@@ -25,6 +25,10 @@ public class SenderHelper : MonoBehaviour
         List<byte> returnList = new List<byte>();
         foreach (char c in message) {
             returnList.Add((byte)c);
+            if (c == '\0')
+            {
+                Debug.LogError("Had null character in string");
+            }
         }
         returnList.Add(0);
 
@@ -35,10 +39,10 @@ public class SenderHelper : MonoBehaviour
 
 
         GameManagerScript.instance.log("sending who are you to port: " + dest.PortName);
-        List<byte> message = new List<byte> { (byte)'a', 0};
-        foreach (byte b in message) {
-            Debug.Log("ascii: " + b + ", char: " + (char)b);
-        }
+        List<byte> message = new List<byte> {(byte)'a', 0 };
+        //foreach (byte b in message) {
+        //    Debug.Log("ascii: " + b + ", char: " + (char)b);
+        //}
         dest.Write(message.ToArray(), 0, message.Count);
     }
 
@@ -176,10 +180,10 @@ public class SenderHelper : MonoBehaviour
         }
         command.Add(0);
         GameManagerScript.instance.portDictionary[stopper].Write(command.ToArray(), 0, (char)command.Count);
-        foreach (byte b in command)
-        {
-            Debug.Log("ascii: " + b + ", char: " + (char)b);
-        }
+        //foreach (byte b in command)
+        //{
+        //    Debug.Log("ascii: " + b + ", char: " + (char)b);
+        //}
     }
 
     public void NewGame()

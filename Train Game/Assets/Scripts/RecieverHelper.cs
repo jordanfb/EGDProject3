@@ -69,6 +69,7 @@ public class RecieveIAm : RecieveCommand
         }
         //put in dictionary
 
+        Debug.LogError("NonError: Assigned arduino at " + sp.PortName + " to " + recieverID);
         GameManagerScript.instance.log("assigning " + recieverID + " to sp: " + sp.PortName);
 
         GameManagerScript.instance.serialPortsAvailable.Remove(sp);

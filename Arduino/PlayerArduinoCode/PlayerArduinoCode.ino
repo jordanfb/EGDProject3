@@ -169,7 +169,15 @@ void NewGame() {
 void SendDebugMessage(char message[]) {
   Serial.print('s');
   Serial.print(message);
-  Serial.print("\n\0");
+  Serial.write('\n');
+  Serial.write('\0');
+}
+
+void SendDebugMessage(const char message[]) {
+  Serial.print('s');
+  Serial.print(message);
+  Serial.write('\n');
+  Serial.write('\0');
 }
 
 void SendDebugMessage(char* message, int len) {
@@ -186,6 +194,7 @@ void HandleIncomingSerial() {
     case 'a':
       // Who are you?
       // send back our player ID with command I am ____
+      while (!Serial.available());
       Serial.read(); // should be null character
       
       Serial.write('r');
@@ -197,6 +206,7 @@ void HandleIncomingSerial() {
       // display train don't answer
       // print it out and start a countdown to doing other things likely
       ReadInTrainMessages(true);
+      while (!Serial.available());
       Serial.read();
       DisplayTrain(true);
       break;
@@ -204,24 +214,27 @@ void HandleIncomingSerial() {
       // display train you need to answer
       // print it out and require that you choose one or the other thing!
       ReadInTrainMessages(false);
+      while (!Serial.available());
       Serial.read();
       DisplayTrain(false);
       break;
     case 'k':
       // new game! Reset everything!
+      while (!Serial.available());
       Serial.read(); // should be null character
       NewGame();
       break;
     case 'l':
       // send keywords
       // store that we're a townsperson and also what our keywords are and also tell the player
+      while (!Serial.available());
       numCodewords = Serial.read();
       numCodewords = min(numCodewords, 5);
       // then readin  the codewords!
       SendDebugMessage("entered read in codewords");
       ReadInCodewords(numCodewords);
       SendDebugMessage("done reading code words");
-      
+      while (!Serial.available());
       if(Serial.read() ==0){
         SendDebugMessage("ended with null character");
       } // should be null character
@@ -233,12 +246,14 @@ void HandleIncomingSerial() {
     case 'm':
       // send code words
       // store that we're a spy and also what our code words are and also tell the player
+      while (!Serial.available());
       numCodewords = Serial.read();
       numCodewords = min(numCodewords, 5);
       // then read in the codewords!
       SendDebugMessage("entered read in codewords");
       ReadInCodewords(numCodewords);
       SendDebugMessage("done reading code words");
+      while (!Serial.available());
       if(Serial.read() ==0){
         SendDebugMessage("ended with null character");
       } // should be null character
@@ -278,11 +293,13 @@ int ReadStringNewlineEnded(char buff[]) {
   int currWordLength = 0;
   // read in this codeword
   // codewords end in newlines
+  while (!Serial.available());
   char c = Serial.read();
   while (c != '\n' && c != '\0' && currWordLength < 64) {
       // add it to the current word
       buff[currWordLength] = c;
       currWordLength++;
+      while (!Serial.available());
       c = Serial.read();
     }
     // if it's a newline, then we're set! For now just assume it's a newline I guess?
@@ -318,7 +335,9 @@ void DisplayTrain(bool includeAnswer) {
 }
 
 void ReadInTrainMessages(bool includeAnswer) {
+  while (!Serial.available());
   trainFrom = Serial.read();
+  while (!Serial.available());
   trainTo = Serial.read();
   leftWordLength = ReadStringNewlineEnded(leftWord);
   leftWordLength = ReadStringNewlineEnded(rightWord);

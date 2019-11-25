@@ -12,10 +12,12 @@ public class GameManagerScript : MonoBehaviour
     // Start is called before the first frame update
 
     //harcoded to only work on my laptop
-    public SerialPort stream1 = new SerialPort("/dev/tty.usbmodem142101", 9600);
+    //public SerialPort stream1 = new SerialPort("/dev/tty.usbmodem142101", 9600);
+    public SerialPort stream1 = new SerialPort("COM4", 9600);
     //public SerialPort stream2 = new SerialPort("/dev/tty.usbmodem1424401", 9600);
     public List<SerialPort> serialPortsAvailable = new List<SerialPort>();
     public List<SerialPort> serialPortsInUse = new List<SerialPort>();
+    public List<SerialPort> portsWeveOpened = new List<SerialPort>(); // this is in order to close them so that we can upload to the board and whatever else we want but don't have to use them for the game
 
     //visual Debug
     [Header("Visual Debugging Variables")]
@@ -88,6 +90,7 @@ public class GameManagerScript : MonoBehaviour
 
     public void log(string content) {
         TMP_Text text = Instantiate(logTextPrefab, scrollViewContent).GetComponent<TMP_Text>();
+        text.transform.SetAsFirstSibling();
         text.text = content;
 
     }
@@ -118,6 +121,18 @@ public class GameManagerScript : MonoBehaviour
 
 
     }
+
+    private void OnDestroy()
+    {
+        // loop over all the ports we've opened and close them, useful for uploading code
+        foreach(SerialPort p in portsWeveOpened)
+        {
+            p.Close();
+            Debug.Log("Closed serial port: " + p.PortName);
+        }
+        portsWeveOpened = new List<SerialPort>();
+    }
+
     public bool waitForAssignmentOnStartUp() {
 
 
@@ -135,12 +150,13 @@ public class GameManagerScript : MonoBehaviour
                     continue;
                 }
                 sp.Open();
+                portsWeveOpened.Add(sp);
                 sp.ReadTimeout = 1;
                 StartCoroutine(readPort(sp));
 
                 StartCoroutine(pingWhoAreYouUntilAssigned(sp));
-                Debug.Log("success");
-                log("success");
+                Debug.Log("Found a port to query");
+                log("Found a port to query");
             }
             catch (System.IO.IOException)
             {
@@ -153,23 +169,16 @@ public class GameManagerScript : MonoBehaviour
 
 
     //will ask who it is until there are no more serial ports to fill
-    public IEnumerator pingWhoAreYouUntilAssigned(SerialPort sp) {
-        
-        while (serialPortsAvailable.Contains(sp)){
-            
+    public IEnumerator pingWhoAreYouUntilAssigned(SerialPort sp)
+    {
+        while (serialPortsAvailable.Contains(sp))
+        {
             SenderHelper.instance.WhoAreYou(sp);
-            yield return new WaitForSeconds(0.5f);
-
-
+            yield return new WaitForSeconds(10f);
         }
         yield return null;
     }
 
-
-
-    //each port is constantly running this function, basically just lisening for chars
-    //to come through and will build a command, once it finds a null character then the
-    //command must be complete
 
     public void QueueDebugCommand(string command) {
 
@@ -186,7 +195,8 @@ public class GameManagerScript : MonoBehaviour
                 relevantQueue.Enqueue((byte)'\n');
             }
             else if (char.IsDigit(c)) {
-                relevantQueue.Enqueue((byte)(c- '0'));
+                //relevantQueue.Enqueue((byte)(c- '0'));
+                relevantQueue.Enqueue((byte)(c));
             }
             else
             {
@@ -196,6 +206,10 @@ public class GameManagerScript : MonoBehaviour
         }
         relevantQueue.Enqueue(0);
     }
+
+    //each port is constantly running this function, basically just lisening for chars
+    //to come through and will build a command, once it finds a null character then the
+    //command must be complete
     public IEnumerator readPort(SerialPort sp) {
         //List<char> currentCommand = new List<char>();
 
@@ -263,20 +277,17 @@ public class GameManagerScript : MonoBehaviour
                                 executingCommand = true;
                                 break;
                             case 's':
-                                Debug.Log("setting new command to DEBUG");
+                                //Debug.Log("setting new command to DEBUG");
                                 currentCommand = new ReadError();
                                 executingCommand = true;
                                 break;
-
                             default:
+                                Debug.LogError("Unable to figure out command sent to me: " + incomingByte + " " + (char)incomingByte);
                                 break;
-
-
                         }
                     }
                     else
                     {
-
                         if (incomingByte == 0)
                         {
                             if (currentCommand != null) {
@@ -284,20 +295,15 @@ public class GameManagerScript : MonoBehaviour
                                 currentCommand = null;
                                 executingCommand = false;
                             }
-                            
                         }
                         else
                         {
                             currentCommand.readNextByte(incomingByte);
                         }
-
                     }
-
-
                 }
                 catch (TimeoutException)
                 {
-
                     //Debug.Log("timeout exception");
                 }
             }

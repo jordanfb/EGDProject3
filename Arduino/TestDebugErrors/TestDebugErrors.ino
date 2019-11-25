@@ -61,10 +61,14 @@ char rightWord[65]; // max 64 character long strings for everything. Probably wa
 int answerWordLength = 0;
 char questionAnswer[65]; // max 64 character long strings for everything. Probably way too much
 
-
+String debugStringTest = "";
+//int incomingCommandLength = 0;
+//char incomingCommand[256]]; // used for storing command stuff I guess
 
 void setup(){
   Serial.begin(9600);
+  while (!Serial); // wait for it to be ready
+  while(Serial.available()) {Serial.read(); } // clear the serial for now?
 
   // NOTE: SOME PRINTERS NEED 9600 BAUD instead of 19200, check test page. (From the test printer we got it needed 19200, but we'll see what happens for the rest of them)
   mySerial.begin(19200);  // Initialize SoftwareSerial
@@ -86,7 +90,7 @@ void SendDebugMessage(char* message, int len) {
   Serial.write('\0');
 }
 
-void SendDebugMessage(char message) {
+void SendDebugMessage(byte message) {
   Serial.write('s');
   Serial.write(message);
   Serial.write('\n');
@@ -94,10 +98,28 @@ void SendDebugMessage(char message) {
 }
 
 void HandleIncomingSerial() {
+//  while (Serial.available() > 0) {
+//    // skip over characters
+//    if (Serial.read() == '<') {
+//      // we've found the start of a command
+////      SendDebugMessage("Found start of command");
+//      break;
+//    }
+//  }
+//  while (Serial.available() == 0) {
+//    // wait for serial stuff to appear!
+////    return; // ignore these characters
+//  }
   char messageType = Serial.read();
-
+  if (messageType == 0) {
+    SendDebugMessage('E');
+  } else {
+    SendDebugMessage(messageType);
+  }
+  
   switch(messageType) {
     case 'a':
+      SendDebugMessage("Found who are you comand");
       // Who are you?
       // send back our player ID with command I am ____
       Serial.read(); // should be null character
@@ -108,34 +130,27 @@ void HandleIncomingSerial() {
       SendDebugMessage("Got who are you");
     break;
     default:
+      debugStringTest += messageType;
       SendDebugMessage("Got message I couldn't read");
       SendDebugMessage(messageType);
       char c = 1;
       while (c != 0) {
         // keep reading until the message is over
         c = Serial.read();
+        debugStringTest += c;
         SendDebugMessage(c);
+        if (c == 63) {
+          // literally a question mark
+          SendDebugMessage("Literally a question mark");
+        }
       }
+      SendDebugMessage("Recieved:");
+      debugStringTest.toCharArray(leftWord, debugStringTest.length());
+      SendDebugMessage(leftWord, debugStringTest.length());
       SendDebugMessage("Done sending bytes I couldn't read");
       break; // we could error but for now just ignore it
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
