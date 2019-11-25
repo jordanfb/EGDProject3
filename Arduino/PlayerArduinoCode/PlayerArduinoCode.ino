@@ -219,9 +219,9 @@ void AnswerQuestion(bool chooseRight) {
   Serial.write(ARDUINO_ID);
   Serial.write(trainID);
   if (chooseRight) {
-    Serial.write((byte)1);
+    Serial.write((byte)2);
   } else {
-    Serial.write((byte)0);
+    Serial.write((byte)1);
   }
   Serial.write('\0');
 }
@@ -236,9 +236,10 @@ void HandleButtonPresses() {
   // deal with voting and stop train buttons!
   if (millis() > stopTrainAllowedTime) {
     // if we eventually get lighting up the stop train button to work put it here! FIX Also, if we get this working make sure to disable the pin on new game
-    if (digitalRead(STOP_PIN)) {
+    if (digitalRead(STOP_PIN) == LOW) {
       // stop the train!
       SendStopTrain();
+      SendDebugMessage("STOP TRAIN PRESSED");
       // prevent players from pressing this again for some time
       stopTrainAllowedTime = millis() + TIME_BETWEEN_PRESSES;
     }
@@ -264,10 +265,11 @@ void HandleButtonPresses() {
     // then increment it by 1 since you can't vote for yourself!
     vote++;
   }
-  if (vote > 0) {
-    // then you voted this frame! Send the vote!
-    SendVote(vote);
-  }
+  // don't send vote at the moment because we don't have buttons hooked up there
+//  if (vote > 0) {
+//    // then you voted this frame! Send the vote!
+//    SendVote(vote);
+//  }
 }
 
 void HandleIncomingSerial() {

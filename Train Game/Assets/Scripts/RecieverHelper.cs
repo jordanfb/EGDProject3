@@ -258,6 +258,7 @@ public class StopTrainPressed : RecieveCommand
 //example if someone stops a train that is not intended for them, it gets printed in th
 //DisplayTrainDontAnswer message, then, after 3 seconds, this message is sent from the
 //client arduino to resume the train if it wasn't meant for them
+// isRight integer --> 1 = left, 2 = right
 public class AnswerTrain : RecieveCommand
 {
     int senderID;
@@ -281,7 +282,7 @@ public class AnswerTrain : RecieveCommand
             if (senderID == GameManagerScript.instance.trainDictionary[trainID].reciever)
             {
                 //spawn train on answer track
-                if (isRight == 1)
+                if (isRight == 2)
                 {
                     GameManagerScript.instance.trainDictionary[trainID].answer = GameManagerScript.instance.trainDictionary[trainID].rightText;
                 }
