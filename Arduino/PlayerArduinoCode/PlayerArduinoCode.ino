@@ -85,6 +85,30 @@ void setup(){
   pinMode(VOTE_PINS, INPUT_PULLUP + 3); // the other end of it should be connected to ground!
 }
 
+void AddCharacterToTrain(char c) {
+  // if it's safe to add the character then I do so, otherwise we print an error I guess
+  if (creatingLeftTrain) {
+    if (leftWordLength < 64) {
+      // then allow it
+      leftWord[leftWordLength] = c;
+      leftWordLength++;
+      leftWord[leftWordLength] = '\0'; // make sure it's null terminated
+    } else {
+      printer.println(F("Your first word is the maximum 64 characters long!"));
+    }
+  } else {
+    // right train!
+    if (rightWordLength < 64) {
+      // then allow it
+      rightWord[rightWordLength] = c;
+      rightWordLength++;
+      rightWord[rightWordLength] = '\0'; // make sure it's null terminated
+    } else {
+      printer.println(F("Your second word is the maximum 64 characters long!"));
+    }
+  }
+}
+
 void charPressedRemap(char c) {
   if (c == '1') {
     return; // ignore those...
@@ -93,7 +117,8 @@ void charPressedRemap(char c) {
   if (lastKeyPress != c) {
     // add the key!
     if (lastKeyPress != '\0') {
-      keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+//      keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+      AddCharacterToTrain(getLetterFromMap(lastKeyPress, numPresses));
     }
     lastKeyPress = c;
     numPresses = 1;
@@ -102,7 +127,8 @@ void charPressedRemap(char c) {
       // increment the letter
       numPresses++;
     } else {
-      keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+//      keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+      AddCharacterToTrain(getLetterFromMap(lastKeyPress, numPresses));
       lastKeyPress = c;
       numPresses = 1;
     }
@@ -214,16 +240,35 @@ void SendVote(char voteFor) {
   printer.println(" player");
 }
 
+void CreateTrain(char destination) {
+  // sender, reciever, left\n, right\n
+  Serial.write('n');
+  Serial.write(ARDUINO_ID);
+  Serial.write(destination);
+  for (int i =0; i < leftWordLength; i++) {
+    Serial.write(leftWord[i]);
+  }
+  Serial.write('\n');
+  for (int i =0; i < rightWordLength; i++) {
+    Serial.write(rightWord[i]);
+  }
+  Serial.write('\n');
+  Serial.write('\0');
+}
+
 void AnswerQuestion(bool chooseRight) {
   Serial.write('p');
   Serial.write(ARDUINO_ID);
   Serial.write(trainID);
   if (chooseRight) {
     Serial.write((byte)2);
+    Serial.write('\0');
+    SendDebugMessage("Answered question with right");
   } else {
     Serial.write((byte)1);
+    Serial.write('\0');
+    SendDebugMessage("Answered question with left");
   }
-  Serial.write('\0');
 }
 
 void SendStopTrain() {
@@ -295,6 +340,7 @@ void HandleIncomingSerial() {
       Serial.read();
       printer.println(F("Intercepted a train:"));
       DisplayTrain(true);
+      ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
       break;
     case 'h':
       // display train you need to answer
@@ -306,6 +352,7 @@ void HandleIncomingSerial() {
       Serial.read();
       printer.println(F("Stopped a train to you:"));
       DisplayTrain(false);
+      ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
       answeringTrain = true;
       printer.println(F("Press 4 to choose the left option. Press 6 to choose the right option."));
       break;
@@ -513,7 +560,8 @@ void loop(){
       if (millis() - lastKeypressTime >= timeBetweenLetters) {
         // increment the letter
         if (lastKeyPress != '\0') {
-          keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+//          keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+          AddCharacterToTrain(getLetterFromMap(lastKeyPress, numPresses));
           lastKeyPress = '\0';
           numPresses = 1;
         }
@@ -521,37 +569,97 @@ void loop(){
     
       if (key != NO_KEY) {
 //        Serial.println(key); // don't do that that will fuck up the game code
-        if (key == '*') {
+        if (key == '1')
+        {
+          if (leftWordLength > 0 && rightWordLength > 0) {
+            // then DEBUG SEND THE TRAIN I GUESS?
+            // Improve this when we have the correct keypads
+            printer.println(F("DEBUG: Choose who you're sending it to, press their character 1, 2, 3, 4, or 5"));
+            while (keypad.getKey() == '1') {
+              // keep reading until we release the 1 key
+            }
+            while (true) {
+              // choose who to send it to
+              key = keypad.getKey();
+              if (key != NO_KEY) {
+                // is it a valid choice?
+                if (key == '1' || key == '2' || key == '3' || key == '4' || key == '5') {
+                  // send it to that person!
+                  printer.print("Sent it to player ");
+                  printer.println(key);
+                  CreateTrain(key - '0');
+                  ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
+                  SendDebugMessage("CREATED TRAIN PLEASE");
+                  break;
+                }
+              }
+            }
+          } else if (rightWordLength > 0){
+            printer.println("Left word has length 0");
+          }
+          else if (leftWordLength > 0){
+            printer.println("Right word has length 0");
+          } else {
+            printer.println("Can't send, you haven't entered any message!");
+          }
+        }
+        else if (key == '*') {
           if (lastKeyPress != '\0') {
             lastKeyPress = '\0';
             numPresses = 0;
           }
           else {
-            keypadInput = keypadInput.substring(0, keypadInput.length()-1);
+            if (creatingLeftTrain) {
+              if (leftWordLength > 0) {
+                leftWordLength--;
+                leftWord[leftWordLength] = '\0';
+              }
+            } else {
+              if (rightWordLength > 0) {
+                rightWordLength--;
+                rightWord[rightWordLength] = '\0';
+              }
+            }
+//            keypadInput = keypadInput.substring(0, keypadInput.length()-1);
             lastKeyPress = '\0';
             numPresses = 0;
           }
         } else if (key == '#'){
-          if (keypadInput.length() > 0 || lastKeyPress != '\0') {
-            if (lastKeyPress != '\0') {
-              // then add it on
-              keypadInput += getLetterFromMap(lastKeyPress, numPresses);
-              lastKeyPress = '\0';
-              numPresses = 1;
+          // toggle between left and right word
+          if (creatingLeftTrain) {
+            printer.print("Your first option is currently: '");
+            for(int i = 0; i < leftWordLength; i++) {
+              printer.print(leftWord[i]);
             }
-//            Serial.println(keypadInput); // don't do that that will fuck up the game code, instead, send a train! (or toggle which you're editing! FIX
-            keypadInput = "";
+            printer.println("'"); // close quotes
+          } else {
+            printer.print("Your second option is currently: '");
+            for(int i = 0; i < rightWordLength; i++) {
+              printer.print(rightWord[i]);
+            }
+            printer.println("'"); // close quotes
           }
+          creatingLeftTrain = !creatingLeftTrain;
+//          if (keypadInput.length() > 0 || lastKeyPress != '\0') {
+//            if (lastKeyPress != '\0') {
+//              // then add it on
+//              keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+//              lastKeyPress = '\0';
+//              numPresses = 1;
+//            }
+////            Serial.println(keypadInput); // don't do that that will fuck up the game code, instead, send a train! (or toggle which you're editing! FIX
+//            keypadInput = "";
+//          }
         } else {
 //        keypadInput += key;
           charPressedRemap(key);
         }
       }
-
       // if we're playing the game then
       HandleButtonPresses();
     }
   }
+  
   if (Serial.available()) {
     HandleIncomingSerial();
     // then echo the string back
