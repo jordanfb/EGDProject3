@@ -19,8 +19,7 @@ public class RecieverHelper : MonoBehaviour
 interface RecieveCommand {
     // this function determines the behavior when you read in a new character 
     void readNextByte(byte b);
-    void executePopulatedMessage();
-   
+    void executePopulatedMessage();   
 }
 
 public class RecieveIAm : RecieveCommand
@@ -380,7 +379,7 @@ public class SendVote : RecieveCommand
 public class ReadError : RecieveCommand
 {
     public string debugMessage = "";
-
+    public string whoAmI = "no port set";
 
     private enum state
     {
@@ -394,12 +393,12 @@ public class ReadError : RecieveCommand
         GameManagerScript.instance.log(debugMessage);
         if (debugMessage.Length != 0)
         {
-            Debug.LogWarning("debug message: ascii: " + (byte)debugMessage[0] + ", char: " + debugMessage);
+            Debug.LogWarning("debug message from: " + whoAmI + ": ascii: " + (byte)debugMessage[0] + ", char: " + debugMessage);
 
         }
         else
         {
-            Debug.LogWarning("length of debug message is 0");
+            Debug.LogWarning("Debug message from: " + whoAmI + " length of debug message is 0");
 
         }
 
