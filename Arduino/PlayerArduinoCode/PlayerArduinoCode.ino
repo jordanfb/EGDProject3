@@ -518,7 +518,7 @@ void loop(){
       }
     
       if (key != NO_KEY) {
-        Serial.println(key);
+//        Serial.println(key); // don't do that that will fuck up the game code
         if (key == '*') {
           if (lastKeyPress != '\0') {
             lastKeyPress = '\0';
@@ -537,7 +537,7 @@ void loop(){
               lastKeyPress = '\0';
               numPresses = 1;
             }
-            Serial.println(keypadInput);
+//            Serial.println(keypadInput); // don't do that that will fuck up the game code, instead, send a train! (or toggle which you're editing! FIX
             keypadInput = "";
           }
         } else {
