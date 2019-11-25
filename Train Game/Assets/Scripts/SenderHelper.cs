@@ -169,7 +169,7 @@ public class SenderHelper : MonoBehaviour
     }
     public void SendCodewords(int stopper, int numCodewords, List<string> codewords)
     {
-        List<byte> command = new List<byte> { (byte)'m', 3 };
+        List<byte> command = new List<byte> { (byte)'m', (byte)codewords.Count };
         foreach (string s in codewords)
         {
             foreach (char c in s)

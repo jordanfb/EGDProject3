@@ -270,7 +270,7 @@ void HandleIncomingSerial() {
       }
       Serial.write('\n');
       Serial.write('\0');
-//      DisplayCodewords();
+      DisplayCodewords();
       SendDebugMessage("Got spy keywords");
       break;
     default:
@@ -312,26 +312,26 @@ int ReadStringNewlineEnded(char buff[]) {
 }
 
 void DisplayTrain(bool includeAnswer) {
-//  printer.println(F("New message:"));
-//  printer.print(F("FROM: "));
-//  printer.println(playerIDToStringName[trainFrom]);  
-//  printer.print(F("TO: "));
-//  printer.println(playerIDToStringName[trainTo]);
-//  
-//  // display the contents of the message
-//  printer.println(leftWord);
-//  printer.print(F(" OR "));
-//  printer.println(rightWord);
-//
-//  if (includeAnswer) {
-//    if (answerWordLength > 0) {
-//      printer.print(F("Answer: "));
-//      printer.println(questionAnswer);
-//    }
-//    else {
-//      printer.println(F("Not yet answered."));
-//    }
-//  }
+  printer.println(F("New message:"));
+  printer.print(F("FROM: "));
+  printer.println(playerIDToStringName[trainFrom]);  
+  printer.print(F("TO: "));
+  printer.println(playerIDToStringName[trainTo]);
+  
+  // display the contents of the message
+  printer.println(leftWord);
+  printer.print(F(" OR "));
+  printer.println(rightWord);
+
+  if (includeAnswer) {
+    if (answerWordLength > 0) {
+      printer.print(F("Answer: "));
+      printer.println(questionAnswer);
+    }
+    else {
+      printer.println(F("Not yet answered."));
+    }
+  }
 }
 
 void ReadInTrainMessages(bool includeAnswer) {
