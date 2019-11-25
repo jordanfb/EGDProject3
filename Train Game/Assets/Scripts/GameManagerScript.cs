@@ -45,7 +45,7 @@ public class GameManagerScript : MonoBehaviour
     public Dictionary<int, TrainData> trainDictionary = new Dictionary<int, TrainData>();
     public Dictionary<int, PlayerData> playerInfoDictionary = new Dictionary<int, PlayerData>();
 
-    public Dictionary<int, List<PlayerData>> votingDicrionary = new Dictionary<int, List<PlayerData>>();
+    public Dictionary<int, List<PlayerData>> votingDictionary = new Dictionary<int, List<PlayerData>>();
     public int currentTrainID = 1;
     public float timeInBetweenStations = 4f;
     bool allSerialOpened = true;

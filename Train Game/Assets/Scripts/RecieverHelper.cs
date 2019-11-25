@@ -79,7 +79,7 @@ public class RecieveIAm : RecieveCommand
         {
             PlayerData newPlayer = new PlayerData(recieverID, sp, recieverID * ((2 * Mathf.PI)/5));
             GameManagerScript.instance.playerInfoDictionary.Add(recieverID, newPlayer);
-            GameManagerScript.instance.votingDicrionary.Add(recieverID, new List<PlayerData>());
+            GameManagerScript.instance.votingDictionary.Add(recieverID, new List<PlayerData>());
             GameManagerScript.instance.addDebugStation(recieverID);
 
 
@@ -242,13 +242,10 @@ public class StopTrainPressed : RecieveCommand
         if (GameManagerScript.instance.trainDictionary[minID].sender == senderID) {
             SenderHelper.instance.DestroyTrainLights(minID);
         }
-
-
     }
 
     public void readNextByte(byte b)
     {
-
         senderID += (char)b;
     }
 }
@@ -350,7 +347,7 @@ public class SendVote : RecieveCommand
     public void executePopulatedMessage()
     {
 
-        GameManagerScript.instance.votingDicrionary[senderID].Add(
+        GameManagerScript.instance.votingDictionary[senderID].Add(
             GameManagerScript.instance.playerInfoDictionary[playerVoted]);
 
     }
