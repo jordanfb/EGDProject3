@@ -73,19 +73,19 @@ public class RecieveIAm : RecieveCommand
         GameManagerScript.instance.serialPortsAvailable.Remove(sp);
         GameManagerScript.instance.serialPortsInUse.Add(sp);
 
+        GameManagerScript.instance.portDictionary.Add(recieverID, sp);
+        GameManagerScript.instance.debugCommandsDictionary.Add(sp, new Queue<byte>());
+
         if (recieverID != 6)
         {
             PlayerData newPlayer = new PlayerData(recieverID, sp, recieverID * ((2 * Mathf.PI)/5));
             GameManagerScript.instance.playerInfoDictionary.Add(recieverID, newPlayer);
             GameManagerScript.instance.votingDictionary.Add(recieverID, new List<PlayerData>());
             GameManagerScript.instance.addDebugStation(recieverID);
-
+            SenderHelper.instance.SendCodewords(recieverID, GameManagerScript.instance.keywords.Count, GameManagerScript.instance.keywords);
 
         }
-        
-        GameManagerScript.instance.portDictionary.Add(recieverID, sp);
-        GameManagerScript.instance.debugCommandsDictionary.Add(sp, new Queue<byte>());
-        SenderHelper.instance.SendCodewords(recieverID, GameManagerScript.instance.keywords.Count, GameManagerScript.instance.keywords);
+       
 
 
 

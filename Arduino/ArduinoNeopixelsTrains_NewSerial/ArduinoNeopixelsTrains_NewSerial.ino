@@ -171,9 +171,6 @@ void loop() {
         SendDebugMessage("RESET GAME:\n");
         ResetGame();
         break;
-      case 'm':
-        SendDebugMessage("Received spy codewords (not needed, but handled)");
-        break;
       default:
         //      Serial.println(buffer_[0]);
         SendDebugMessage("WTF");
