@@ -100,7 +100,8 @@ void loop() {
     } else if (trainsStopped[i]) { // if train is stopped
       //      SendDebugMessage("Train stopped at i =");
       //      SendDebugMessage((byte)i);
-      drawTrain(location[i], headColors[i], tailColors[i]); // draw the train at the stopped station
+        drawTrain(location[i], headColors[i], tailColors[i]); // draw the train at the stopped station
+        outerStrip.show();
       //      outerStrip.show();
       //      delay(delayTime);
     } /* else if (answeredTrains[i]) {
@@ -249,21 +250,21 @@ void SpawnTrain(byte sender, byte receiver, byte trainID) {
 void DestroyTrain(byte trainID) {
   //SendDebugMessage("Destroying a train with trainID = " + trainID + "\n");
   int trainIndex = GetTrainIndex(ToInt(trainID));
-  Adafruit_NeoPixel strip;
+  /*Adafruit_NeoPixel strip;
 
   if (answeredTrains[trainID]) {
     strip = innerStrip;
   }
   else {
     strip = outerStrip;
-  }
+  }*/
 
   // erase where the train previously was before being stopped
-  ResetPin(location[trainIndex], strip);
-  ResetPin(location[trainIndex] + 1, strip);
-  ResetPin(location[trainIndex] + 2, strip);
-  ResetPin(location[trainIndex] + 3, strip);
-  strip.show();
+  ResetPin(location[trainIndex]);
+  ResetPin(location[trainIndex] + 1);
+  ResetPin(location[trainIndex] + 2);
+  ResetPin(location[trainIndex] + 3);
+  outerStrip.show();
 
   location[trainIndex] = 0;
   headColors[trainIndex] = 0;
@@ -278,21 +279,24 @@ void PauseTrain(byte hijacker, byte trainID) {
   //SendDebugMessage("Paused a train at Player " + hijacker + " that had trainID = " + trainID + "\n");
   int hijackerNumber = ToInt(hijacker) - 1;
   int trainIndex = GetTrainIndex(ToInt(trainID));
-  Adafruit_NeoPixel strip;
+ // Adafruit_NeoPixel strip;
 
-  if (answeredTrains[trainID]) {
+  /*if (answeredTrains[trainID]) {
     strip = innerStrip;
   }
   else {
     strip = outerStrip;
-  }
+  }*/
+
+SendDebugMessage("IN PAUSE TRAIN: ");
+SendDebugMessage((byte)trainIndex);
 
   // erase where the train previously was before being stopped
-  ResetPin(location[trainIndex], strip);
-  ResetPin(location[trainIndex] + 1, strip);
-  ResetPin(location[trainIndex] + 2, strip);
-  ResetPin(location[trainIndex] + 3, strip);
-  strip.show();
+  ResetPin(location[trainIndex]);
+  ResetPin(location[trainIndex] + 1);
+  ResetPin(location[trainIndex] + 2);
+  ResetPin(location[trainIndex] + 3);
+  outerStrip.show();
 
   // set location to the station of the player who hijacked it
   location[trainIndex] = (trainStation + (nodesPerSector * hijackerNumber));
@@ -348,8 +352,8 @@ void UpdateStripColor(uint32_t color, Adafruit_NeoPixel strip) {
 }
 
 // function to reset a pin to the base color of the strip
-void ResetPin(int pin, Adafruit_NeoPixel strip) {
-  strip.setPixelColor(pin, baseColor);
+void ResetPin(int pin) {
+  outerStrip.setPixelColor(pin, outerStrip.Color(0, 0, 0));
 }
 
 // function to reset the game for a new game
@@ -382,10 +386,10 @@ void AnswerTrain(byte trainID) {
   }
 
   // erase where the train previously was before being stopped
-  ResetPin(location[trainIndex], outerStrip);
-  ResetPin(location[trainIndex] + 1, outerStrip);
-  ResetPin(location[trainIndex] + 2, outerStrip);
-  ResetPin(location[trainIndex] + 3, outerStrip);
+  ResetPin(location[trainIndex]);
+  ResetPin(location[trainIndex] + 1);
+  ResetPin(location[trainIndex] + 2);
+  ResetPin(location[trainIndex] + 3);
   outerStrip.show();
 
   location[trainIndex] = (innerStation + (nodesPerInnerSector * (playerNumber)));
