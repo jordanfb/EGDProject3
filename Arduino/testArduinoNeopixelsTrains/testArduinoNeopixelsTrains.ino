@@ -66,14 +66,14 @@ void setup() {
 
 void loop() {
   // Some example procedures showing how to display to the pixels:
-  for(int i =0; i < 150; i++) {
-    drawTrain(i, strip.Color(0, 255, 0), strip.Color(255, 0, 0));
-    drawTrain(i+70, strip.Color(0, 0, 255), strip.Color(255, 255, 0));
-    drawTrain(i+120, strip.Color(0, 0, 255), strip.Color(255, 0, 255));
-    drawTrain(i+100, strip.Color(0, 0, 255), strip.Color(100, 100, 255));
-    strip.show();
-    delay(delayTime);
-  }
+//  for(int i =0; i < 150; i++) {
+//    drawTrain(i, strip.Color(0, 255, 0), strip.Color(255, 0, 0));
+//    drawTrain(i+70, strip.Color(0, 0, 255), strip.Color(255, 255, 0));
+//    drawTrain(i+120, strip.Color(0, 0, 255), strip.Color(255, 0, 255));
+//    drawTrain(i+100, strip.Color(0, 0, 255), strip.Color(100, 100, 255));
+//    strip.show();
+//    delay(delayTime);
+//  }
 
   for(int i=0; i<5; i++) {
     if(spawnedTrains[i] && !trainsStopped[i]) {

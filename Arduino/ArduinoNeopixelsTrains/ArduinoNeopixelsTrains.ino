@@ -203,7 +203,7 @@ void drawTrain(int i, uint32_t head, uint32_t tail) {
 }
 
 void drawTrainInner(int i, uint32_t head) {
-  innerStrip.setPixelColor((i)%NUMBER_OF_PINS_INSIDE, head);
+  innerStrip.setPixelColor((i)%NUMBER_OF_PINS_INNER, head);
 }
 
 // function to spawn a new train
@@ -362,7 +362,6 @@ void AnswerTrain(char trainID) {
   ResetPin(location[trainIndex] + 3, outerStrip);
   outerStrip.show();
 
-int startPosition = (trainStation + (nodesPerSector * (ToInt(sender) - 1)));
   location[trainIndex] = (innerStation + (nodesPerInnerSector * (playerNumber)));
   trainsStopped[trainIndex] = 0;
   answeredTrains[trainIndex] = 1;
