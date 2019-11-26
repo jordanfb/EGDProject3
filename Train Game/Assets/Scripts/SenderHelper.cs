@@ -38,16 +38,22 @@ public class SenderHelper : MonoBehaviour
         return returnList.ToArray();
 
     }
-    public void WhoAreYou(SerialPort dest)
+    public bool WhoAreYou(SerialPort dest)
     {
-
-
-        GameManagerScript.instance.log("sending who are you to port: " + dest.PortName);
-        List<byte> message = new List<byte> { (byte)'a', 0 };
-        //foreach (byte b in message) {
-        //    Debug.Log("ascii: " + b + ", char: " + (char)b);
-        //}
-        dest.Write(message.ToArray(), 0, message.Count);
+        try
+        {
+            GameManagerScript.instance.log("sending who are you to port: " + dest.PortName);
+            List<byte> message = new List<byte> { (byte)'a', 0 };
+            //foreach (byte b in message) {
+            //    Debug.Log("ascii: " + b + ", char: " + (char)b);
+            //}
+            dest.Write(message.ToArray(), 0, message.Count);
+            return true;
+        } catch (System.TimeoutException)
+        {
+            // the port timed out and probably shouldn't be used...
+            return false;
+        }
     }
 
     //send to LED arduino

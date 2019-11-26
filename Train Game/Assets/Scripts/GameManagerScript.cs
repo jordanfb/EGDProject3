@@ -14,6 +14,7 @@ public class GameManagerScript : MonoBehaviour
     //harcoded to only work on my laptop
     //public SerialPort stream1 = new SerialPort("/dev/tty.usbmodem142101", 9600);
     public SerialPort stream1 = new SerialPort("COM4", 9600);
+    public SerialPort stream2 = new SerialPort("COM6", 9600);
     //public SerialPort stream2 = new SerialPort("/dev/tty.usbmodem1424401", 9600);
     public List<SerialPort> serialPortsAvailable = new List<SerialPort>();
     public List<SerialPort> serialPortsInUse = new List<SerialPort>();
@@ -106,20 +107,43 @@ public class GameManagerScript : MonoBehaviour
 
     }
 
+    void TryAttachingToAllPorts()
+    {
+        string[] ports = SerialPort.GetPortNames();
+        Debug.Log("The following serial ports were found:");
+        // Display each port name to the console.
+        foreach (string port in ports)
+        {
+            try
+            {
+                SerialPort testPort = new SerialPort(port);
+                if (testPort.IsOpen)
+                {
+                    continue; // don't try since someone else has it
+                }
+                else
+                {
+                    // try adding it to the list!
+                    //Debug.Log("Port baud " + testPort.BaudRate);
+                    serialPortsAvailable.Add(testPort);
+                    Debug.Log("Tried attaching to the port! " + port);
+                }
+            } catch (System.IO.IOException)
+            {
+                // don't worry we don't care if it fails to add it we just ignore it
+            }
+        }
+    }
+
     void Start()
     {
         //ex 1 and 2 are players
         serialPortsAvailable.Add(stream1);
-        //serialPortsAvailable.Add(stream2);
-
-        
-        
-
-        
+        serialPortsAvailable.Add(stream2);
+        //TryAttachingToAllPorts();
+        //Debug.Log("Made it to start");
 
         flash.SetActive(false);
-
-
     }
 
     private void OnDestroy()
@@ -136,7 +160,7 @@ public class GameManagerScript : MonoBehaviour
     public bool waitForAssignmentOnStartUp() {
 
 
-        if (serialPortsAvailable.Count == 0) {
+        if (serialPortsInUse.Count >= 2) {
 
             return true;
         }
@@ -171,12 +195,23 @@ public class GameManagerScript : MonoBehaviour
     //will ask who it is until there are no more serial ports to fill
     public IEnumerator pingWhoAreYouUntilAssigned(SerialPort sp)
     {
-        while (serialPortsAvailable.Contains(sp))
+        while (serialPortsAvailable.Contains(sp) && serialPortsInUse.Count < 6)
         {
-            SenderHelper.instance.WhoAreYou(sp);
-            yield return new WaitForSeconds(10f);
+            if (!SenderHelper.instance.WhoAreYou(sp))
+            {
+                // then it's a bad port and we should feel bad and close it
+                break;
+            }
+            yield return new WaitForSeconds(3f);
         }
         yield return null;
+        if (!serialPortsInUse.Contains(sp))
+        {
+            // then close it if we aren't using it!
+            sp.Close();
+            portsWeveOpened.Remove(sp);
+            Debug.Log("Closed unused port " + sp.PortName);
+        }
     }
 
 
@@ -252,7 +287,7 @@ public class GameManagerScript : MonoBehaviour
                         switch ((char)incomingByte)
                         {
                             case 'r':
-                                Debug.Log("setting new command to I AM");
+                                Debug.Log("setting new command to I AM for sp " + sp.PortName);
                                 currentCommand = new RecieveIAm(sp);
                                 executingCommand = true;
                                 break;
