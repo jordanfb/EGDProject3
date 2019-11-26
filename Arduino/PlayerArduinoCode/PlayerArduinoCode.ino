@@ -35,6 +35,10 @@ int numPresses = 0;
 
 String keypadInput = "";
 
+// debouncing:
+unsigned long stopTrainDebounceTime = 0;  // the last time the output pin was toggled
+unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
+
 
 // printer stuff
 #include "SoftwareSerial.h"
@@ -279,14 +283,15 @@ void SendStopTrain() {
 
 void HandleButtonPresses() {
   // deal with voting and stop train buttons!
-  if (millis() > stopTrainAllowedTime) {
+  unsigned long t = millis(); //  && (t - stopTrainDebounceTime > debounceTime)
+  if (t > stopTrainAllowedTime) {
     // if we eventually get lighting up the stop train button to work put it here! FIX Also, if we get this working make sure to disable the pin on new game
     if (digitalRead(STOP_PIN) == LOW) {
       // stop the train!
       SendStopTrain();
       SendDebugMessage("STOP TRAIN PRESSED");
       // prevent players from pressing this again for some time
-      stopTrainAllowedTime = millis() + TIME_BETWEEN_PRESSES;
+      stopTrainAllowedTime = t + TIME_BETWEEN_PRESSES;
     }
   }
 
