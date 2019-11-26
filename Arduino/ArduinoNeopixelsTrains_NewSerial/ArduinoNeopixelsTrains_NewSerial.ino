@@ -79,10 +79,10 @@ void setup() {
   innerStation = (nodesPerInnerSector / 2);
 
   timeHolder = millis();
-  trainsID[0] = 1;
-  headColors[0] = outerStrip.Color(25, 0, 0);
-  tailColors[0] = outerStrip.Color(0, 25, 0);
-  location[0] = 15;
+//  trainsID[0] = 1;
+//  headColors[0] = outerStrip.Color(25, 0, 0);
+//  tailColors[0] = outerStrip.Color(0, 25, 0);
+//  location[0] = 15;
 }
 
 void loop() {
@@ -240,7 +240,7 @@ void SpawnTrain(byte sender, byte receiver, byte trainID) {
       headColors[playerNumber + i] = fromColor;
       tailColors[playerNumber + i] = toColor;
       trainsStopped[playerNumber + i] = 0;
-      trainsID[playerNumber + i] = 0;//ToInt((byte)trainID);
+      trainsID[playerNumber + i] = ToInt(trainID);
       SendDebugMessage("TRAIN SUCCESSFULLY SPAWNED");
       break;
     }
