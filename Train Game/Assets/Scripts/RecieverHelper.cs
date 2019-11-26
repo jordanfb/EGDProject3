@@ -203,7 +203,7 @@ public class StopTrainPressed : RecieveCommand
         //display message if it was meant for them and prompt for answer
         if (GameManagerScript.instance.trainDictionary[minID].reciever == senderID)
         {
-            if (GameManagerScript.instance.trainDictionary[minID].answer == null)
+            if (GameManagerScript.instance.trainDictionary[minID].answer.Equals(""))
             {
                 SenderHelper.instance.DisplayTrainThatNeedsAnswer(
                 senderID,
