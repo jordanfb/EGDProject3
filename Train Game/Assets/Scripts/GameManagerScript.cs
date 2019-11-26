@@ -409,6 +409,12 @@ public class GameManagerScript : MonoBehaviour
     }
 
 
+    public IEnumerator ReleaseTrainAfterTime(float time, int trainID)
+    {
+        yield return new WaitForSeconds(time);
+        Debug.Log("Train started again after " + time + " seconds");
+        SenderHelper.instance.ReleaseTrainLights(trainID);
+    }
 
 
     // Update is called once per frame
