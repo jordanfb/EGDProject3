@@ -79,40 +79,56 @@ public class SenderHelper : MonoBehaviour
     public void PauseTrainLights(int stopperID, int trainID)
     {
 
+        byte[] message = { (byte)'c', (byte)stopperID, (byte)trainID, 0 };
+
         GameManagerScript.instance.trainDictionary[trainID].isPaused = true;
         GameManagerScript.instance.log("player " + stopperID + " is pausing trainID: " + trainID);
+        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
 
     }
     public void ReleaseTrainLights(int trainID)
     {
+        byte[] message = { (byte)'d', (byte)trainID, 0 };
+
         GameManagerScript.instance.trainDictionary[trainID].isPaused = false;
         GameManagerScript.instance.log("trainID: " + trainID + " is being released");
+        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
 
     }
 
     public void MoveTrainToAnswerTrack(int trainID)
     {
-        GameManagerScript.instance.trainDictionary[trainID].isOnAnswerStrip = true;
+        byte[] message = { (byte)'e', (byte)trainID, 0 };
 
+        GameManagerScript.instance.trainDictionary[trainID].isOnAnswerStrip = true;
         GameManagerScript.instance.log("moving train: " + trainID + " to the answer track");
+        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
     }
     public void DestroyTrainLights(int trainID)
     {
+        byte[] message = { (byte)'f', (byte)trainID, 0 };
+
         Destroy(GameManagerScript.instance.visualTrainDictionary[trainID]);
         GameManagerScript.instance.visualTrainDictionary.Remove(trainID);
 
         GameManagerScript.instance.trainDictionary.Remove(trainID);
         GameManagerScript.instance.log("Destroying trainID: " + trainID);
+        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
 
     }
 
-    public void SetSpeedOfLights(int speed, bool isAnswerTrack)
+    public void SetSpeedOfLights(int speed, bool isAnswerTrack) // lets make isAnswerTrack an int rep of bool as 0=false, 1=true, so we can send as byte - Nick :D
     {
+        //byte[] message = { (byte)'i', (byte)speed, (byte)isAnswerTrack, 0 };
+
+        //GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
 
     }
     public void SendVoteLights(int senderID, int candidateAID, int candidateBID)
     {
+        byte[] message = { (byte)'j', (byte)candidateAID, (byte)candidateBID, 0 };
 
+        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
     }
     public void DisplayTrainDontAnswer(int stopper, int senderID, int recieverID, string optionA, string optionB, string answer)
     {

@@ -13,8 +13,9 @@ public class GameManagerScript : MonoBehaviour
 
     //harcoded to only work on my laptop
     //public SerialPort stream1 = new SerialPort("/dev/tty.usbmodem142101", 9600);
-    public SerialPort stream1 = new SerialPort("COM4", 9600);
-    public SerialPort stream2 = new SerialPort("COM6", 9600);
+    public SerialPort stream0 = new SerialPort("COM4", 9600);
+    public SerialPort stream1 = new SerialPort("COM6", 9600);
+    public SerialPort stream2 = new SerialPort("COM7", 9600);
     //public SerialPort stream2 = new SerialPort("/dev/tty.usbmodem1424401", 9600);
     public List<SerialPort> serialPortsAvailable = new List<SerialPort>();
     public List<SerialPort> serialPortsInUse = new List<SerialPort>();
@@ -138,10 +139,11 @@ public class GameManagerScript : MonoBehaviour
     void Start()
     {
         //ex 1 and 2 are players
+        serialPortsAvailable.Add(stream0);
         serialPortsAvailable.Add(stream1);
         serialPortsAvailable.Add(stream2);
+        //serialPortsAvailable.Add(stream2);
         //TryAttachingToAllPorts();
-        //Debug.Log("Made it to start");
 
         flash.SetActive(false);
     }
@@ -287,7 +289,7 @@ public class GameManagerScript : MonoBehaviour
                         switch ((char)incomingByte)
                         {
                             case 'r':
-                                Debug.Log("setting new command to I AM for sp " + sp.PortName);
+                                Debug.Log("setting new command to I AM for sp " + sp.PortName);	
                                 currentCommand = new RecieveIAm(sp);
                                 executingCommand = true;
                                 break;
@@ -314,6 +316,7 @@ public class GameManagerScript : MonoBehaviour
                             case 's':
                                 //Debug.Log("setting new command to DEBUG");
                                 currentCommand = new ReadError();
+                                ((ReadError)currentCommand).whoAmI = sp.PortName;
                                 executingCommand = true;
                                 break;
                             default:
@@ -459,6 +462,4 @@ public struct PlayerData {
         sp = _sp;
         radians = _radians;
     }
-
-
 }
