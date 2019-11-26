@@ -212,8 +212,10 @@ public class StopTrainPressed : RecieveCommand
                 GameManagerScript.instance.trainDictionary[minID].reciever,
                 GameManagerScript.instance.trainDictionary[minID].leftText,
                 GameManagerScript.instance.trainDictionary[minID].rightText);
+                // don't release the train, it'll be released when you answer the message
             }
-            else {
+            else
+            {
 
                 //they want to view their train again
                 SenderHelper.instance.DisplayTrainDontAnswer(
@@ -223,6 +225,12 @@ public class StopTrainPressed : RecieveCommand
                 GameManagerScript.instance.trainDictionary[minID].leftText,
                 GameManagerScript.instance.trainDictionary[minID].rightText,
                 GameManagerScript.instance.trainDictionary[minID].answer);
+                if (GameManagerScript.instance.trainDictionary[minID].sender != senderID)
+                {
+                    // if it's not your train resume it, it's already answered
+                    // only resume it if you're not going to destroy it
+                    GameManagerScript.instance.StartCoroutine(GameManagerScript.instance.ReleaseTrainAfterTime(4f, minID)); // start the train again after a while since it starts again automatically!
+                }
             }
             
             //display train you need to answer
@@ -236,6 +244,11 @@ public class StopTrainPressed : RecieveCommand
                 GameManagerScript.instance.trainDictionary[minID].rightText,
                 GameManagerScript.instance.trainDictionary[minID].answer);
             //display train don't answer
+            if (GameManagerScript.instance.trainDictionary[minID].sender != senderID)
+            {
+                // if it's not your train, you should release it after a bit
+                GameManagerScript.instance.StartCoroutine(GameManagerScript.instance.ReleaseTrainAfterTime(4f, minID)); // start the train again after a while since it starts again automatically!
+            }
         }
 
         if (GameManagerScript.instance.trainDictionary[minID].sender == senderID) {
