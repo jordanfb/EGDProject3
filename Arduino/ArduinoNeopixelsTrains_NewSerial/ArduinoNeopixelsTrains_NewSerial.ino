@@ -5,7 +5,7 @@
 
 #define PIN 6
 #define INNER_PIN 5
-#define NUMBER_OF_PINS_OUTER 300
+#define NUMBER_OF_PINS_OUTER 100
 #define NUMBER_OF_PINS_INNER 60
 #define TRAINS_PER_PLAYER 2
 
@@ -75,8 +75,8 @@ void setup() {
   //UpdateStripColor(baseColor, outerStrip);
   //UpdateStripColor(color5, innerStrip);
 
-  trainStation = (nodesPerSector / 2) - 2;
-  innerStation = (nodesPerInnerSector / 2);
+//  trainStation = (nodesPerSector / 2) - 2;
+//  innerStation = (nodesPerInnerSector / 2);
 
   timeHolder = millis();
 }

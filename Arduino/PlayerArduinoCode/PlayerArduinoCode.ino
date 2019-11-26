@@ -9,7 +9,7 @@
 #define STOP_PIN 11
 #define VOTE_PINS 12 // starts from this pin and goes up 4. i.e. 12, 13, 14, 15 // shouldn't use pin 13 though because that has the blink LED there though, so we should figure this out...
 #define TIME_BETWEEN_PRESSES 4000
-const char ARDUINO_ID = 1; // 1 to 6
+const char ARDUINO_ID = 5; // 1 to 6
 const String playerIDToStringName[] = {"", "Red", "Blue", "Green", "Purple", "Yellow"}; // no player 0, because that's the null terminating character so we don't send that if we can avoid it
 
 
@@ -484,6 +484,13 @@ void DisplayTrain(bool includeAnswer) {
 void ReadInTrainMessages(bool includeAnswer) {
   while (!Serial.available());
   trainFrom = Serial.read();
+  if (trainFrom == ARDUINO_ID) {
+    createdTrains--;
+    if (createdTrains < 0) {
+      createdTrains = 0;
+    }
+    printer.println("Stopped one of your trains and thus are able to make another one!");
+  }
   while (!Serial.available());
   trainTo = Serial.read();
   leftWordLength = ReadStringNewlineEnded(leftWord);
@@ -580,36 +587,43 @@ void loop(){
 //        Serial.println(key); // don't do that that will fuck up the game code
         if (key == '1')
         {
-          if (leftWordLength > 0 && rightWordLength > 0) {
-            // then DEBUG SEND THE TRAIN I GUESS?
-            // Improve this when we have the correct keypads
-            printer.println(F("DEBUG: Choose who you're sending it to, press their character 1, 2, 3, 4, or 5"));
-            while (keypad.getKey() == '1') {
-              // keep reading until we release the 1 key
-            }
-            while (true) {
-              // choose who to send it to
-              key = keypad.getKey();
-              if (key != NO_KEY) {
-                // is it a valid choice?
-                if (key == '1' || key == '2' || key == '3' || key == '4' || key == '5') {
-                  // send it to that person!
-                  printer.print("Sent it to player ");
-                  printer.println(key);
-                  CreateTrain(key - '0');
-                  ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
-                  SendDebugMessage("CREATED TRAIN PLEASE");
-                  break;
+          if (createdTrains < allowedTrains) {
+            if (leftWordLength > 0 && rightWordLength > 0) {
+              // then DEBUG SEND THE TRAIN I GUESS?
+              // Improve this when we have the correct keypads
+              printer.println(F("DEBUG: Choose who you're sending it to, press their character 1, 2, 3, 4, or 5"));
+              while (keypad.getKey() == '1') {
+                // keep reading until we release the 1 key
+              }
+              while (true) {
+                // choose who to send it to
+                key = keypad.getKey();
+                if (key != NO_KEY) {
+                  // is it a valid choice?
+                  if (key == '1' || key == '2' || key == '3' || key == '4' || key == '5') {
+                    // send it to that person!
+                      printer.print("Sent it to player ");
+                    printer.println(key);
+                    CreateTrain(key - '0');
+                    createdTrains++;
+                    ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
+                    SendDebugMessage("CREATED TRAIN PLEASE");
+                    break;
+                  }
                 }
               }
+            } else if (rightWordLength > 0){
+              printer.println("Left word has length 0");
             }
-          } else if (rightWordLength > 0){
-            printer.println("Left word has length 0");
+            else if (leftWordLength > 0){
+              printer.println("Right word has length 0");
+            } else {
+              printer.println("Can't send, you haven't entered any message!");
+            }
           }
-          else if (leftWordLength > 0){
-            printer.println("Right word has length 0");
-          } else {
-            printer.println("Can't send, you haven't entered any message!");
+          else {
+            // not allowed to create any more trains
+            printer.println(F("Not allowed to create any more trains!"));
           }
         }
         else if (key == '*') {
