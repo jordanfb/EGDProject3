@@ -150,7 +150,14 @@ public class GameManagerScript : MonoBehaviour
         // Display each port name to the console.
         foreach (string port in ports)
         {
-            try
+            #if UNITY_STANDALONE_OSX
+            if (!port.Contains("/dev/tty.usb")) {
+                continue;
+            }
+            Debug.Log("MAC PORT BAYBEE: " + port);
+            #else
+            #endif
+                try
             {
                 SerialPort testPort = new SerialPort(port);
                 if (testPort.IsOpen)
@@ -160,11 +167,12 @@ public class GameManagerScript : MonoBehaviour
                 else
                 {
                     // try adding it to the list!
-                    //Debug.Log("Port baud " + testPort.BaudRate);
+                    Debug.Log("Port baud " + testPort.BaudRate);
                     serialPortsAvailable.Add(testPort);
                     Debug.Log("Tried attaching to the port! " + port);
                 }
-            } catch (System.IO.IOException)
+            }
+            catch (System.IO.IOException)
             {
                 // don't worry we don't care if it fails to add it we just ignore it
             }
@@ -174,10 +182,8 @@ public class GameManagerScript : MonoBehaviour
     void Start()
     {
         //ex 1 and 2 are players
-        //serialPortsAvailable.Add(stream0);
-        //serialPortsAvailable.Add(stream1);
-        //serialPortsAvailable.Add(stream2);
-        //serialPortsAvailable.Add(stream2);
+
+
         TryAttachingToAllPorts();
 
         flash.SetActive(false);
@@ -497,7 +503,7 @@ public class TrainData {
         leftText = _leftText;
         sender = _sender;
         reciever = _reciever;
-        answer = null;
+        answer = "";
         radians = _radians;
 
     }

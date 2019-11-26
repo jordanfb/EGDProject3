@@ -317,12 +317,10 @@ public class AnswerTrain : RecieveCommand
             case state.sender:
                 senderID += b;
                 currentState = state.trainID;
-                Debug.Log("finsihed with sender");
                 break;
             case state.trainID:
                 trainID += b;
                 currentState = state.answer;
-                Debug.Log("finsihed with reciever");
                 break;
             case state.answer:
                 //maybe add some case handleing to make sure this number is 0 or 1

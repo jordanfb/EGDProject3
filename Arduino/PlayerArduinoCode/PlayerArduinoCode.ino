@@ -158,7 +158,7 @@ char getLetterFromMap(char keypadChar, int numPresses) {
       numPresses %= 3;
       return char(numPresses + 97 + 0);
     case '3':
-      Serial.println("Got to 3");
+//      Serial.println("Got to 3");
       numPresses %= 3;
       return char(numPresses + 97 + 3);
     case '4':
@@ -292,6 +292,10 @@ void HandleButtonPresses() {
       SendDebugMessage("STOP TRAIN PRESSED");
       // prevent players from pressing this again for some time
       stopTrainAllowedTime = t + TIME_BETWEEN_PRESSES;
+    }
+  } else {
+    if (digitalRead(STOP_PIN) == LOW) {
+      SendDebugMessage("Stop train pressed but it's not time to press it");
     }
   }
 
