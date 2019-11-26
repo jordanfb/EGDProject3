@@ -7,7 +7,7 @@
 #define INNER_PIN 5
 #define NUMBER_OF_PINS_OUTER 300
 #define NUMBER_OF_PINS_INNER 60
-#define TRAINS_PER_PLAYER 1
+#define TRAINS_PER_PLAYER 2
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
@@ -79,10 +79,6 @@ void setup() {
   innerStation = (nodesPerInnerSector / 2);
 
   timeHolder = millis();
-//  trainsID[0] = 1;
-//  headColors[0] = outerStrip.Color(25, 0, 0);
-//  tailColors[0] = outerStrip.Color(0, 25, 0);
-//  location[0] = 15;
 }
 
 void loop() {
@@ -358,8 +354,8 @@ void ResetPin(int pin, Adafruit_NeoPixel strip) {
 
 // function to reset the game for a new game
 void ResetGame() {
-  UpdateStripColor(baseColor, outerStrip); // update strip to the base color
-  UpdateStripColor(baseColor, innerStrip);
+  UpdateStripColor(outerStrip.Color(0, 0, 0), outerStrip); // update strip to the base color
+  //UpdateStripColor(baseColor, innerStrip);
 
   // reset all arrays that store train information
   for (int i = 0; i < 5 * TRAINS_PER_PLAYER; i++) {

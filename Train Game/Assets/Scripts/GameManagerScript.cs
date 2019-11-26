@@ -66,6 +66,41 @@ public class GameManagerScript : MonoBehaviour
         
     }
 
+    public void SendNewGameAll() {
+        byte[] message = { (byte)'k', 0 };
+
+        foreach (SerialPort sp in portDictionary.Values) {
+            sp.Write(message, 0, message.Length);
+        }
+
+        foreach (GameObject go in visualTrainDictionary.Values) {
+            Destroy(go);
+        }
+
+        trainDictionary.Clear();
+        visualTrainDictionary.Clear();
+    }
+
+    public void SendCodewordsAndKeywords()
+    {
+        foreach (int user in portDictionary.Keys)
+        {
+            if (user < 6)
+            {
+                // it's a player!
+                if (UnityEngine.Random.Range(0f, 1) < .5f)
+                {
+                    // they're a townsfolk
+                    SenderHelper.instance.SendKeywords(user, keywords.Count, keywords);
+                } else
+                {
+                    // they're a spy
+                    SenderHelper.instance.SendCodewords(user, keywords.Count, keywords);
+                }
+            }
+        }
+    }
+
     public void addDebugTrain(int id) {
         GameObject newTrain = Instantiate(trainPrefab);
 
