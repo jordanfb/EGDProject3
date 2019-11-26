@@ -13,9 +13,9 @@ public class GameManagerScript : MonoBehaviour
 
     //harcoded to only work on my laptop
     //public SerialPort stream1 = new SerialPort("/dev/tty.usbmodem142101", 9600);
-    public SerialPort stream0 = new SerialPort("COM4", 9600);
-    public SerialPort stream1 = new SerialPort("COM6", 9600);
-    public SerialPort stream2 = new SerialPort("COM7", 9600);
+    //public SerialPort stream0 = new SerialPort("COM4", 9600);
+    //public SerialPort stream1 = new SerialPort("COM6", 9600);
+    //public SerialPort stream2 = new SerialPort("COM7", 9600);
     //public SerialPort stream2 = new SerialPort("/dev/tty.usbmodem1424401", 9600);
     public List<SerialPort> serialPortsAvailable = new List<SerialPort>();
     public List<SerialPort> serialPortsInUse = new List<SerialPort>();
@@ -139,11 +139,11 @@ public class GameManagerScript : MonoBehaviour
     void Start()
     {
         //ex 1 and 2 are players
-        serialPortsAvailable.Add(stream0);
-        serialPortsAvailable.Add(stream1);
-        serialPortsAvailable.Add(stream2);
+        //serialPortsAvailable.Add(stream0);
+        //serialPortsAvailable.Add(stream1);
         //serialPortsAvailable.Add(stream2);
-        //TryAttachingToAllPorts();
+        //serialPortsAvailable.Add(stream2);
+        TryAttachingToAllPorts();
 
         flash.SetActive(false);
     }
@@ -166,6 +166,7 @@ public class GameManagerScript : MonoBehaviour
 
             return true;
         }
+        List<SerialPort> portsToRemove = new List<SerialPort>();
         foreach (SerialPort sp in serialPortsAvailable)
         {
             
@@ -176,19 +177,31 @@ public class GameManagerScript : MonoBehaviour
                     continue;
                 }
                 sp.Open();
-                portsWeveOpened.Add(sp);
-                sp.ReadTimeout = 1;
-                StartCoroutine(readPort(sp));
+                if (sp.IsOpen)
+                {
+                    portsWeveOpened.Add(sp);
+                    sp.ReadTimeout = 1;
+                    StartCoroutine(readPort(sp));
 
-                StartCoroutine(pingWhoAreYouUntilAssigned(sp));
-                Debug.Log("Found a port to query");
-                log("Found a port to query");
+                    StartCoroutine(pingWhoAreYouUntilAssigned(sp));
+                    Debug.Log("Found a port to query");
+                    log("Found a port to query");
+                } else
+                {
+                    // should remove it from the list probably... it's defnitely not worth it
+                    portsToRemove.Add(sp);
+                }
             }
             catch (System.IO.IOException)
             {
-                
+                portsToRemove.Add(sp);
             }
 
+        }
+        for (int i =0; i < portsToRemove.Count; i++)
+        {
+            Debug.Log("Removed potential port that didn't work " + portsToRemove[i].PortName);
+            serialPortsAvailable.Remove(portsToRemove[i]);
         }
         return false;
     }
@@ -197,7 +210,7 @@ public class GameManagerScript : MonoBehaviour
     //will ask who it is until there are no more serial ports to fill
     public IEnumerator pingWhoAreYouUntilAssigned(SerialPort sp)
     {
-        while (serialPortsAvailable.Contains(sp) && serialPortsInUse.Count < 6)
+        while (serialPortsAvailable.Contains(sp) && serialPortsInUse.Count < 6 && sp.IsOpen)
         {
             if (!SenderHelper.instance.WhoAreYou(sp))
             {
@@ -260,6 +273,11 @@ public class GameManagerScript : MonoBehaviour
 
         while (true) {
             //check if device was disconnected
+            if (!sp.IsOpen)
+            {
+                Debug.Log("Port closed when trying to read it " + sp.PortName);
+                break; // it's closed, leave it alone
+            }
             
             bool debugInitializedAndPopulated = debugCommandsDictionary.ContainsKey(sp) && debugCommandsDictionary[sp].Count != 0;
             while (sp.BytesToRead > 0 || debugInitializedAndPopulated)
