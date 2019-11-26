@@ -260,10 +260,10 @@ void DestroyTrain(byte trainID) {
   }*/
 
   // erase where the train previously was before being stopped
-  ResetPin(location[trainIndex], outerStrip);
-  ResetPin(location[trainIndex] + 1, outerStrip);
-  ResetPin(location[trainIndex] + 2, outerStrip);
-  ResetPin(location[trainIndex] + 3, outerStrip);
+  ResetPin(location[trainIndex]);
+  ResetPin(location[trainIndex] + 1);
+  ResetPin(location[trainIndex] + 2);
+  ResetPin(location[trainIndex] + 3);
   outerStrip.show();
 
   location[trainIndex] = 0;
@@ -292,11 +292,11 @@ SendDebugMessage("IN PAUSE TRAIN: ");
 SendDebugMessage((byte)trainIndex);
 
   // erase where the train previously was before being stopped
-  ResetPin(location[trainIndex], outerStrip);
-  ResetPin(location[trainIndex] + 1, outerStrip);
-  ResetPin(location[trainIndex] + 2, outerStrip);
-  ResetPin(location[trainIndex] + 3, outerStrip);
-  //outerStrip.show();
+  ResetPin(location[trainIndex]);
+  ResetPin(location[trainIndex] + 1);
+  ResetPin(location[trainIndex] + 2);
+  ResetPin(location[trainIndex] + 3);
+  outerStrip.show();
 
   // set location to the station of the player who hijacked it
   location[trainIndex] = (trainStation + (nodesPerSector * hijackerNumber));
@@ -352,8 +352,8 @@ void UpdateStripColor(uint32_t color, Adafruit_NeoPixel strip) {
 }
 
 // function to reset a pin to the base color of the strip
-void ResetPin(int pin, Adafruit_NeoPixel strip) {
-  strip.setPixelColor(pin, baseColor);
+void ResetPin(int pin) {
+  outerStrip.setPixelColor(pin, outerStrip.Color(0, 0, 0));
 }
 
 // function to reset the game for a new game
@@ -386,10 +386,10 @@ void AnswerTrain(byte trainID) {
   }
 
   // erase where the train previously was before being stopped
-  ResetPin(location[trainIndex], outerStrip);
-  ResetPin(location[trainIndex] + 1, outerStrip);
-  ResetPin(location[trainIndex] + 2, outerStrip);
-  ResetPin(location[trainIndex] + 3, outerStrip);
+  ResetPin(location[trainIndex]);
+  ResetPin(location[trainIndex] + 1);
+  ResetPin(location[trainIndex] + 2);
+  ResetPin(location[trainIndex] + 3);
   outerStrip.show();
 
   location[trainIndex] = (innerStation + (nodesPerInnerSector * (playerNumber)));
