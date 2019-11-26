@@ -468,7 +468,7 @@ public class TrainData {
         leftText = _leftText;
         sender = _sender;
         reciever = _reciever;
-        answer = null;
+        answer = "";
         radians = _radians;
 
     }
