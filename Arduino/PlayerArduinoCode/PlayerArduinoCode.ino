@@ -9,7 +9,7 @@
 #define STOP_PIN 11
 #define VOTE_PINS 12 // starts from this pin and goes up 4. i.e. 12, 13, 14, 15 // shouldn't use pin 13 though because that has the blink LED there though, so we should figure this out...
 #define TIME_BETWEEN_PRESSES 4000
-const char ARDUINO_ID = 5; // 1 to 6
+const char ARDUINO_ID = 2; // 1 to 6
 const String playerIDToStringName[] = {"", "Red", "Blue", "Green", "Purple", "Yellow"}; // no player 0, because that's the null terminating character so we don't send that if we can avoid it
 
 
@@ -511,11 +511,11 @@ void DisplayCodewords() {
   if (isTownsperson) {
     printer.println(F("You are a TOWNSPERSON"));
     printer.inverseOff();
-//    printer.println(F("The spies DO NOT KNOW these keywords! Ask other players questions about them to determine if they are in the know and vote them out if they are a spy!"));
+    printer.println(F("The spies DO NOT KNOW these keywords! Ask other players questions about them to determine if they are in the know and vote them out if they are a spy!"));
   } else {
     printer.println(F("You are a SPY"));
     printer.inverseOff();
-//    printer.println(F("Blend in among the townspeople and send these codewords to the other spy in order to reduce the time that the townsfolk have to vote you out!"));
+    printer.println(F("Blend in among the townspeople and send these codewords to the other spy in order to reduce the time that the townsfolk have to vote you out!"));
   }
   printer.justify('C');
   for (int i =0; i < numCodewords; i++) {
@@ -523,6 +523,8 @@ void DisplayCodewords() {
     printer.println(codewords[i]);
   }
   printer.justify('L');
+  printer.println("");
+  printer.println("");
 }
 
 void ReadInCodewords(int num) {
@@ -648,6 +650,14 @@ void loop(){
             numPresses = 0;
           }
         } else if (key == '#'){
+          // first add the letter if it exists so we don't loose any last letters
+          if (lastKeyPress != '\0') {
+//          keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+          AddCharacterToTrain(getLetterFromMap(lastKeyPress, numPresses));
+          lastKeyPress = '\0';
+          numPresses = 1;
+        }
+        
           // toggle between left and right word
           if (creatingLeftTrain) {
             printer.print("Your first option is currently: '");
