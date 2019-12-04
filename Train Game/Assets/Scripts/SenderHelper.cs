@@ -47,7 +47,10 @@ public class SenderHelper : MonoBehaviour
             //foreach (byte b in message) {
             //    Debug.Log("ascii: " + b + ", char: " + (char)b);
             //}
-            dest.Write(message.ToArray(), 0, message.Count);
+            if (dest.IsOpen) {
+                dest.Write(message.ToArray(), 0, message.Count);
+
+            }
             return true;
         } catch (System.TimeoutException)
         {
@@ -67,7 +70,9 @@ public class SenderHelper : MonoBehaviour
             " to " + recieverID + " with id: " + trainID);
         if (GameManagerScript.instance.portDictionary.ContainsKey(6))
         {
-            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+            if (GameManagerScript.instance.portDictionary[6].IsOpen) {
+                GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+            }
         }
         else
         {
@@ -83,7 +88,10 @@ public class SenderHelper : MonoBehaviour
 
         GameManagerScript.instance.trainDictionary[trainID].isPaused = true;
         GameManagerScript.instance.log("player " + stopperID + " is pausing trainID: " + trainID);
-        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen) {
+            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+
+        }
 
     }
     public void ReleaseTrainLights(int trainID)
@@ -92,7 +100,9 @@ public class SenderHelper : MonoBehaviour
 
         GameManagerScript.instance.trainDictionary[trainID].isPaused = false;
         GameManagerScript.instance.log("trainID: " + trainID + " is being released");
-        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+        if (GameManagerScript.instance.portDictionary[6].IsOpen) {
+            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+        }
 
     }
 
@@ -102,7 +112,10 @@ public class SenderHelper : MonoBehaviour
 
         GameManagerScript.instance.trainDictionary[trainID].isOnAnswerStrip = true;
         GameManagerScript.instance.log("moving train: " + trainID + " to the answer track");
-        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+        if (GameManagerScript.instance.portDictionary[6].IsOpen)
+        {
+            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+        }
     }
     public void DestroyTrainLights(int trainID)
     {
@@ -113,7 +126,11 @@ public class SenderHelper : MonoBehaviour
 
         GameManagerScript.instance.trainDictionary.Remove(trainID);
         GameManagerScript.instance.log("Destroying trainID: " + trainID);
-        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+        if (GameManagerScript.instance.portDictionary[6].IsOpen)
+        {
+            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+
+        }
 
     }
 
@@ -128,7 +145,10 @@ public class SenderHelper : MonoBehaviour
     {
         byte[] message = { (byte)'j', (byte)candidateAID, (byte)candidateBID, 0 };
 
-        GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+        if (GameManagerScript.instance.portDictionary[6].IsOpen) {
+            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+
+        }
     }
     public void DisplayTrainDontAnswer(int stopper, int senderID, int recieverID, string optionA, string optionB, string answer)
     {
@@ -156,7 +176,9 @@ public class SenderHelper : MonoBehaviour
         command.Add((byte)'\n');
         command.Add(0);
 
-        GameManagerScript.instance.portDictionary[stopper].Write(command.ToArray(), 0, (char)command.Count);
+        if (GameManagerScript.instance.portDictionary[stopper].IsOpen) {
+            GameManagerScript.instance.portDictionary[stopper].Write(command.ToArray(), 0, (char)command.Count);
+        }
 
 
     }
@@ -181,7 +203,10 @@ public class SenderHelper : MonoBehaviour
         }
         command.Add((byte)'\n');
         command.Add(0);
-        GameManagerScript.instance.portDictionary[stopper].Write(command.ToArray(), 0, (char)command.Count);
+        if (GameManagerScript.instance.portDictionary[stopper].IsOpen) {
+            GameManagerScript.instance.portDictionary[stopper].Write(command.ToArray(), 0, (char)command.Count);
+
+        }
 
 
 
@@ -199,7 +224,10 @@ public class SenderHelper : MonoBehaviour
             command.Add((byte)'\n');
         }
         command.Add(0);
-        GameManagerScript.instance.portDictionary[stopper].Write(command.ToArray(), 0, (char)command.Count);
+        if (GameManagerScript.instance.portDictionary[stopper].IsOpen) {
+            GameManagerScript.instance.portDictionary[stopper].Write(command.ToArray(), 0, (char)command.Count);
+
+        }
     }
     public void SendCodewords(int stopper, int numCodewords, List<string> codewords)
     {
@@ -213,7 +241,10 @@ public class SenderHelper : MonoBehaviour
             command.Add((byte)'\n');
         }
         command.Add(0);
-        GameManagerScript.instance.portDictionary[stopper].Write(command.ToArray(), 0, (char)command.Count);
+        if (GameManagerScript.instance.portDictionary[stopper].IsOpen) {
+            GameManagerScript.instance.portDictionary[stopper].Write(command.ToArray(), 0, (char)command.Count);
+
+        }
         //foreach (byte b in command)
         //{
         //    Debug.Log("ascii: " + b + ", char: " + (char)b);
