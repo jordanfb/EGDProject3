@@ -196,7 +196,11 @@ public class StopTrainPressed : RecieveCommand
             {
                 minID = trainID;
                 minDist = diff;
+                
             }
+        }
+        if (minDist > 0.5f) {
+            return;
         }
 
         

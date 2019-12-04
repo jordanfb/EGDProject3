@@ -88,6 +88,7 @@ public class SenderHelper : MonoBehaviour
 
         GameManagerScript.instance.trainDictionary[trainID].isPaused = true;
         GameManagerScript.instance.log("player " + stopperID + " is pausing trainID: " + trainID);
+        
         if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen) {
             GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
 
@@ -100,7 +101,7 @@ public class SenderHelper : MonoBehaviour
 
         GameManagerScript.instance.trainDictionary[trainID].isPaused = false;
         GameManagerScript.instance.log("trainID: " + trainID + " is being released");
-        if (GameManagerScript.instance.portDictionary[6].IsOpen) {
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen) {
             GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
         }
 
@@ -112,7 +113,7 @@ public class SenderHelper : MonoBehaviour
 
         GameManagerScript.instance.trainDictionary[trainID].isOnAnswerStrip = true;
         GameManagerScript.instance.log("moving train: " + trainID + " to the answer track");
-        if (GameManagerScript.instance.portDictionary[6].IsOpen)
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen)
         {
             GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
         }
@@ -126,7 +127,7 @@ public class SenderHelper : MonoBehaviour
 
         GameManagerScript.instance.trainDictionary.Remove(trainID);
         GameManagerScript.instance.log("Destroying trainID: " + trainID);
-        if (GameManagerScript.instance.portDictionary[6].IsOpen)
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen)
         {
             GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
 
@@ -145,7 +146,7 @@ public class SenderHelper : MonoBehaviour
     {
         byte[] message = { (byte)'j', (byte)candidateAID, (byte)candidateBID, 0 };
 
-        if (GameManagerScript.instance.portDictionary[6].IsOpen) {
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen) {
             GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
 
         }
