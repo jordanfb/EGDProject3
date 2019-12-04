@@ -324,13 +324,11 @@ public class GameManagerScript : MonoBehaviour
 
             //if it has bytes to read OR the debug array exists AND had stuff in it
 
-            int bytesInRecieveBuffer = 0;
-            if (sp.IsOpen) {
-                bytesInRecieveBuffer = sp.BytesToRead;
-            }
 
 
-            while (debugInitializedAndPopulated || bytesInRecieveBuffer > 0)
+            
+
+            while (debugInitializedAndPopulated || (sp.IsOpen && sp.BytesToRead > 0))
             {
 
 
@@ -350,15 +348,18 @@ public class GameManagerScript : MonoBehaviour
                     else
                     {
 
+                        //incomingByte = (byte)sp.ReadChar();
+
                         if (sp.IsOpen)
                         {
                             incomingByte = (byte)sp.ReadChar();
                         }
-                        else {
-                            continue;
+                        else
+                        {
+                            throw new TimeoutException();
                         }
-                        
-                       
+
+
 
                     }
 

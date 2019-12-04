@@ -858,8 +858,18 @@ MonoBehaviour:
     type: 3}
   debugFromDropDown: {fileID: 0}
   debugToDropDown: {fileID: 0}
-  trainPrefab: {fileID: 2503575933096538298, guid: 5d983a014b2b946ea82fc45a619585c5,
+  trainPrefab: {fileID: 1410693139937752001, guid: b424a8910de064470b0f16af39a7f18e,
     type: 3}
+  stationPrefab: {fileID: 3861027566868987001, guid: 51d2062c6484c45868cd251b6db4f995,
+    type: 3}
+  trainHeadSprite: {fileID: 0}
+  trainTailSprite: {fileID: 0}
+  COLORS:
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 0, g: 0, b: 1, a: 1}
+  - {r: 0, g: 1, b: 0, a: 1}
+  - {r: 1, g: 0, b: 1, a: 1}
+  - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   currentTrainID: 1
   timeInBetweenStations: 4
   keywords:
@@ -1953,8 +1963,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1774904974}
   m_HandleRect: {fileID: 1774904973}
   m_Direction: 2
-  m_Value: 1
-  m_Size: 0.99999994
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2375,7 +2385,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0.9224054, y: 1}
-  m_AnchoredPosition: {x: 0.0000008311369, y: -0.000025513025}
+  m_AnchoredPosition: {x: 0.00004814769, y: -0.000022068985}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.0000000031882408, y: 1}
 --- !u!114 &1172947434
@@ -3513,7 +3523,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1376891682}
   m_Direction: 0
   m_Value: 1
-  m_Size: 0.99999994
+  m_Size: 0.9999999
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
