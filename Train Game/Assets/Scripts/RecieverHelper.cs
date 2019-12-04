@@ -199,7 +199,7 @@ public class StopTrainPressed : RecieveCommand
                 
             }
         }
-        if (minDist > 0.5f) {
+        if (minDist > 0.8f) {
             return;
         }
 

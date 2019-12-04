@@ -53,7 +53,7 @@ public class GameManagerScript : MonoBehaviour
 
     public Dictionary<int, List<PlayerData>> votingDictionary = new Dictionary<int, List<PlayerData>>();
     public int currentTrainID = 1;
-    public float timeInBetweenStations = 4f;
+    public float timeForRotation = 4f;
     bool allSerialOpened = true;
 
     public static GameManagerScript instance;
@@ -193,7 +193,6 @@ public class GameManagerScript : MonoBehaviour
 
         TryAttachingToAllPorts();
 
-        flash.SetActive(false);
     }
 
     private void OnDestroy()
@@ -436,11 +435,14 @@ public class GameManagerScript : MonoBehaviour
     // Update is called once per frame
 
     //5 seconds for a circle
-    float speed = (2 * Mathf.PI) / 5;
+    //a 4th of the track every seconf. the whole track in 4 seconds
+    float speed = (2 * Mathf.PI) / 4;
+
+    float innerSpeed = (2 * Mathf.PI) / (1f/3.6f);
     public List<string> keywords = new List<string> { "z", "z", "z" };
     void Update()
     {
-
+        
         if (Input.GetKeyDown(KeyCode.Equals))
         {
             createTrainWithoutSerialPort();
