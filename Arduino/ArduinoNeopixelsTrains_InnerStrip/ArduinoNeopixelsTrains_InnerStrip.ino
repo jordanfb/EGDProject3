@@ -25,7 +25,7 @@ int delayTime = 60;
 int nodesPerSector = NUMBER_OF_PINS_OUTER / 5;
 int nodesPerInnerSector = NUMBER_OF_PINS_INNER / 5;
 int trainStation = 0;
-int innerStation = 1;
+int innerStation = 0;
 unsigned long timeHolder = 0;
 int clockTick = 750;
 int currentClockPins = 59;
@@ -273,12 +273,14 @@ void PauseTrain(byte hijacker, byte trainID) {
 
   if(!answeredTrains[trainID]) {
     // erase where the train previously was before being stopped
+    SendDebugMessage("PAUSE TRAIN: RESETING OUTER STRIP");
     ResetPin(location[trainIndex]);
     ResetPin(location[trainIndex] + 1);
     ResetPin(location[trainIndex] + 2);
     ResetPin(location[trainIndex] + 3);
     outerStrip.show();
   } else {
+    SendDebugMessage("PAUSE TRAIN: RESETING INNER STRIP");
     ResetPinInner(location[trainIndex]);
     ResetPinInner(location[trainIndex] + 1);
     innerStrip.show();
@@ -353,6 +355,7 @@ void ResetPin(int pin) {
 
 // function to reset a pin to the base color of the inner strip
 void ResetPinInner(int pin) {
+  SendDebugMessage("RESETING PIN INNER!");
   innerStrip.setPixelColor(pin, innerStrip.Color(50, 50, 50));
 }
 
