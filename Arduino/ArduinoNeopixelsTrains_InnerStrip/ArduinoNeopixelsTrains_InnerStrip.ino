@@ -98,6 +98,8 @@ void loop() {
       innerStrip.show();
     } else if (answeredTrains[i]) {
       location[i] += 1;
+      if (location[i] >= NUMBER_OF_PINS_INNER) { location[i] %= NUMBER_OF_PINS_INNER; }
+      
       drawTrainInner(location[i], headColors[i]);
       innerStrip.show();
     }
@@ -245,7 +247,7 @@ void DestroyTrain(byte trainID) {
     strip = outerStrip;
   }*/
 
-  if(!answeredTrains[trainID]) {   
+  if(!answeredTrains[trainIndex]) {   
     // erase where the train previously was before being stopped
     ResetPin(location[trainIndex]);
     ResetPin(location[trainIndex] + 1);
@@ -271,7 +273,7 @@ void PauseTrain(byte hijacker, byte trainID) {
   int hijackerNumber = ToInt(hijacker) - 1;
   int trainIndex = GetTrainIndex(ToInt(trainID));
 
-  if(!answeredTrains[trainID]) {
+  if(!answeredTrains[trainIndex]) {
     // erase where the train previously was before being stopped
     SendDebugMessage("PAUSE TRAIN: RESETING OUTER STRIP");
     ResetPin(location[trainIndex]);
@@ -355,8 +357,9 @@ void ResetPin(int pin) {
 
 // function to reset a pin to the base color of the inner strip
 void ResetPinInner(int pin) {
-  SendDebugMessage("RESETING PIN INNER!");
   innerStrip.setPixelColor(pin, innerStrip.Color(50, 50, 50));
+  SendDebugMessage("RESETING PIN INNER!");
+  SendDebugMessage((byte)pin);
 }
 
 // function to reset the game for a new game
