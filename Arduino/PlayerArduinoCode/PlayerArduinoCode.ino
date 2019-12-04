@@ -8,7 +8,7 @@
 
 #define STOP_PIN 11
 #define VOTE_PINS 12 // starts from this pin and goes up 4. i.e. 12, 13, 14, 15 // shouldn't use pin 13 though because that has the blink LED there though, so we should figure this out...
-#define TIME_BETWEEN_PRESSES 4000
+const unsigned long TIME_BETWEEN_PRESSES = 2000;
 const char ARDUINO_ID = 2; // 1 to 6
 const String playerIDToStringName[] = {"", "Red", "Blue", "Green", "Purple", "Yellow"}; // no player 0, because that's the null terminating character so we don't send that if we can avoid it
 
@@ -35,10 +35,6 @@ int numPresses = 0;
 
 String keypadInput = "";
 
-// debouncing:
-unsigned long stopTrainDebounceTime = 0;  // the last time the output pin was toggled
-unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
-
 
 // printer stuff
 #include "SoftwareSerial.h"
@@ -54,7 +50,7 @@ bool isInitializedForGame = false; // reset to false when new game is called, se
 bool isTownsperson = true;
 int numCodewords = 0;
 char codewords[5][65]; // max 5 codewords/keywords and max 64 character long strings
-//char wordBuffer[65]; // max 64 character long strings for everything. Probably way too much
+char wordBuffer[65]; // max 64 character long strings for everything. Probably way too much
 int createdTrains = 0;
 int allowedTrains = 1; // for now just allowed trains is 1, we may add a way to change that in the messaging system we'll see.
 bool creatingLeftTrain = true;
@@ -71,7 +67,7 @@ char rightWord[65]; // max 64 character long strings for everything. Probably wa
 int answerWordLength = 0;
 char questionAnswer[65]; // max 64 character long strings for everything. Probably way too much
 
-int stopTrainAllowedTime = 0;
+unsigned long stopTrainAllowedTime = 0;
 
 void setup(){
   Serial.begin(9600);
@@ -294,9 +290,11 @@ void HandleButtonPresses() {
       stopTrainAllowedTime = t + TIME_BETWEEN_PRESSES;
     }
   } else {
-    if (digitalRead(STOP_PIN) == LOW) {
-      SendDebugMessage("Stop train pressed but it's not time to press it");
-    }
+//    if (digitalRead(STOP_PIN) == LOW) {
+//      SendDebugMessage("Stop train pressed but it's not time to press it");
+//      String debugString = "MS: " + String(stopTrainAllowedTime - t);
+//      SendDebugMessage(debugString.c_str(), debugString.length());
+//    }
   }
 
   // now check for voting pins! Can always vote!
