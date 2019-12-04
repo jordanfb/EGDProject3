@@ -21,7 +21,7 @@ Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER, PIN, NEO_
 Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER, INNER_PIN, NEO_GRB + NEO_KHZ800);
 
 // variables
-int delayTime = 60;
+int delayTime = 20; // 40 LEDS * delayTime / 10 = seconds
 int nodesPerSector = NUMBER_OF_PINS_OUTER / 5;
 int nodesPerInnerSector = NUMBER_OF_PINS_INNER / 5;
 int trainStation = 0;
@@ -282,7 +282,6 @@ void PauseTrain(byte hijacker, byte trainID) {
     ResetPin(location[trainIndex] + 3);
     outerStrip.show();
   } else {
-    SendDebugMessage("PAUSE TRAIN: RESETING INNER STRIP");
     ResetPinInner(location[trainIndex]);
     ResetPinInner(location[trainIndex] + 1);
     innerStrip.show();
@@ -358,8 +357,6 @@ void ResetPin(int pin) {
 // function to reset a pin to the base color of the inner strip
 void ResetPinInner(int pin) {
   innerStrip.setPixelColor(pin, innerStrip.Color(50, 50, 50));
-  SendDebugMessage("RESETING PIN INNER!");
-  SendDebugMessage((byte)pin);
 }
 
 // function to reset the game for a new game
