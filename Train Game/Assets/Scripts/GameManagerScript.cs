@@ -409,7 +409,6 @@ public class GameManagerScript : MonoBehaviour
                         }
                         else
                         {
-                            Debug.Log("is current command null: " + (currentCommand == null));
                             currentCommand.readNextByte(incomingByte);
                         }
                     }
@@ -452,7 +451,8 @@ public class GameManagerScript : MonoBehaviour
 
         //maybe put this in a coroutine
         foreach (int trainID in trainDictionary.Keys) {
-            if (trainDictionary[trainID].isPaused) {
+            if (trainDictionary[trainID].isPaused)
+            {
                 continue;
             }
 
@@ -463,8 +463,8 @@ public class GameManagerScript : MonoBehaviour
                 Mathf.Cos(trainDictionary[trainID].radians) * innerRadius,
                 Mathf.Sin(trainDictionary[trainID].radians) * innerRadius,
                 0f
-
                 );
+                visualTrainDictionary[trainID].transform.Find("trainBack").gameObject.SetActive(false);
             }
             else {
                 visualTrainDictionary[trainID].transform.position = new Vector3(
