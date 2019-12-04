@@ -276,8 +276,8 @@ public class GameManagerScript : MonoBehaviour
         
         SerialPort originPort = portDictionary[debugFromPlayer];
         Queue<byte> relevantQueue = debugCommandsDictionary[originPort];
-        
-        
+
+        Debug.Log("origin port: " + originPort.PortName);
         
         
         foreach (char c in command) {
@@ -310,24 +310,30 @@ public class GameManagerScript : MonoBehaviour
         //constantly checking if there is an incoming char to the specific serial port
         //if there is a char to read, then it adds it to the current command
         //if there is not a char to read it just continues.
-        bool executingCommand = false;
 
         while (true) {
             //check if device was disconnected
-            if (!sp.IsOpen)
-            {
-                Debug.Log("Port closed when trying to read it " + sp.PortName);
-                break; // it's closed, leave it alone
-            }
-            
             bool debugInitializedAndPopulated = debugCommandsDictionary.ContainsKey(sp) && debugCommandsDictionary[sp].Count != 0;
-            while (sp.BytesToRead > 0 || debugInitializedAndPopulated)
+            Debug.Log(debugInitializedAndPopulated);
+
+            //if it has bytes to read OR the debug array exists AND had stuff in it
+
+            int bytesInRecieveBuffer = 0;
+            if (sp.IsOpen) {
+                bytesInRecieveBuffer = sp.BytesToRead;
+            }
+
+
+            while (debugInitializedAndPopulated || bytesInRecieveBuffer > 0)
             {
+
 
                 try
                 {
                     //I should be parsing it as they come in
                     byte incomingByte;
+
+                    
                     if (debugInitializedAndPopulated)
                     {
                         
@@ -338,11 +344,19 @@ public class GameManagerScript : MonoBehaviour
                     else
                     {
 
-                        incomingByte = (byte)sp.ReadChar();
+                        if (sp.IsOpen)
+                        {
+                            incomingByte = (byte)sp.ReadChar();
+                        }
+                        else {
+                            continue;
+                        }
+                        
+                       
 
                     }
 
-                    if (!executingCommand)
+                    if (currentCommand!= null)
                     {
                         //spawns a new command
                         switch ((char)incomingByte)
@@ -350,33 +364,27 @@ public class GameManagerScript : MonoBehaviour
                             case 'r':
                                 Debug.Log("setting new command to I AM for sp " + sp.PortName);	
                                 currentCommand = new RecieveIAm(sp);
-                                executingCommand = true;
                                 break;
                             case 'n':
                                 Debug.Log("setting new command to CREATE TRAIN");
                                 currentCommand = new CreateTrain();
-                                executingCommand = true;
                                 break;
                             case 'o':
                                 Debug.Log("setting new command to STOP TRAIN PRESSED");
                                 currentCommand = new StopTrainPressed();
-                                executingCommand = true;
                                 break;
                             case 'p':
                                 Debug.Log("setting new command to ANSWER TRAIN");
                                 currentCommand = new AnswerTrain();
-                                executingCommand = true;
                                 break;
                             case 'q':
                                 Debug.Log("setting new command to SEND VOTE");
                                 currentCommand = new SendVote();
-                                executingCommand = true;
                                 break;
                             case 's':
                                 //Debug.Log("setting new command to DEBUG");
                                 currentCommand = new ReadError();
                                 ((ReadError)currentCommand).whoAmI = sp.PortName;
-                                executingCommand = true;
                                 break;
                             default:
                                 Debug.LogError("Unable to figure out command sent to me: " + incomingByte + " " + (char)incomingByte);
@@ -390,7 +398,6 @@ public class GameManagerScript : MonoBehaviour
                             if (currentCommand != null) {
                                 currentCommand.executePopulatedMessage();
                                 currentCommand = null;
-                                executingCommand = false;
                             }
                         }
                         else
@@ -408,7 +415,9 @@ public class GameManagerScript : MonoBehaviour
         }
     }
 
+    public void handleMessages() {
 
+    }
     public IEnumerator ReleaseTrainAfterTime(float time, int trainID)
     {
         yield return new WaitForSeconds(time);
@@ -425,8 +434,9 @@ public class GameManagerScript : MonoBehaviour
     void Update()
     {
 
-        if (Input.GetKeyDown(KeyCode.Q)) {
-            serialPortsAvailable.Clear();
+        if (Input.GetKeyDown(KeyCode.Equals))
+        {
+            createTrainWithoutSerialPort();
         }
         if (!waitForAssignmentOnStartUp()) {
             return;
@@ -460,28 +470,31 @@ public class GameManagerScript : MonoBehaviour
             
         }
 
-        //if (Input.GetKeyDown(KeyCode.P))
-        //{
-        //    foreach (int clientID in portDictionary.Keys)
-        //    {
-        //        SenderHelper.instance.SendCodewords(clientID, keywords.Count, keywords);
-        //    }
-        //}
-
-
-
     }
 
-    public IEnumerator turnFlashOff() {
-        yield return new WaitForSeconds(0.5f);
-        flash.SetActive(false);
-    }
-    public void logOutput(string s) {
-        Debug.Log(s);
+    public void createTrainWithoutSerialPort() {
+
+        int fakeTrainID = 0;
+        for (int i = 1; i < 6; i++) {
+            if (portDictionary.ContainsKey(i)) {
+                continue;
+            }
+            fakeTrainID = i;
+            break;
+        }
+        if (fakeTrainID == 0) {
+            Debug.Log("All Users are assigned");
+            return;
+        }
+
+        SerialPort sp = new SerialPort("fake" + fakeTrainID);
+        RecieveIAm fakeReciept = new RecieveIAm(sp);
+        fakeReciept.recieverID = fakeTrainID;
+        fakeReciept.executePopulatedMessage();
+        StartCoroutine(readPort(sp));
     }
 
 
-   
 }
 
 //immutable

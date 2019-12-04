@@ -82,7 +82,9 @@ public class RecieveIAm : RecieveCommand
             GameManagerScript.instance.playerInfoDictionary.Add(recieverID, newPlayer);
             GameManagerScript.instance.votingDictionary.Add(recieverID, new List<PlayerData>());
             GameManagerScript.instance.addDebugStation(recieverID);
-            SenderHelper.instance.SendCodewords(recieverID, GameManagerScript.instance.keywords.Count, GameManagerScript.instance.keywords);
+            if (sp.IsOpen) {
+                SenderHelper.instance.SendCodewords(recieverID, GameManagerScript.instance.keywords.Count, GameManagerScript.instance.keywords);
+            }
 
         }
        
@@ -120,7 +122,7 @@ public class CreateTrain : RecieveCommand
 
         //add to the train dictionary here
         GameManagerScript.instance.trainDictionary.Add(GameManagerScript.instance.currentTrainID, newTrainData);
-
+        
         SenderHelper.instance.CreateTrainLights(senderID, recieverID, GameManagerScript.instance.currentTrainID);
         //adds to train dictionary
         
