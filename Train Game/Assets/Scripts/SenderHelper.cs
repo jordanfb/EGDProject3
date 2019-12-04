@@ -88,7 +88,7 @@ public class SenderHelper : MonoBehaviour
 
         GameManagerScript.instance.trainDictionary[trainID].isPaused = true;
         GameManagerScript.instance.log("player " + stopperID + " is pausing trainID: " + trainID);
-        if (GameManagerScript.instance.portDictionary[6].IsOpen) {
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen) {
             GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
 
         }

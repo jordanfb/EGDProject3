@@ -34,8 +34,12 @@ public class GameManagerScript : MonoBehaviour
     private int debugToPlayer =1;
     public Dictionary<int, GameObject> visualTrainDictionary = new Dictionary<int, GameObject>();
     public GameObject trainPrefab;
+    public GameObject stationPrefab;
     float outerRadius = 4f;
     float innerRadius = 2f;
+    public Sprite trainHeadSprite;
+    public Sprite trainTailSprite;
+    public Color[] COLORS = { Color.red, Color.blue, Color.green, Color.magenta, Color.yellow };
     //dictionary of int to the port that it controls
     //1-5 are players
     //6 is the lights
@@ -103,7 +107,10 @@ public class GameManagerScript : MonoBehaviour
 
     public void addDebugTrain(int id) {
         GameObject newTrain = Instantiate(trainPrefab);
-
+        newTrain.transform.Find("trainHead").GetComponent<SpriteRenderer>().color =
+            COLORS[trainDictionary[id].sender - 1];
+        newTrain.transform.Find("trainBack").GetComponent<SpriteRenderer>().color =
+            COLORS[trainDictionary[id].reciever - 1];
         float radians = trainDictionary[id].radians;
         newTrain.transform.position = new Vector3(
             Mathf.Cos(radians)*outerRadius,
@@ -115,7 +122,7 @@ public class GameManagerScript : MonoBehaviour
     }
     public void addDebugStation(int id)
     {
-        GameObject newStation = Instantiate(trainPrefab);
+        GameObject newStation = Instantiate(stationPrefab);
         float radians = playerInfoDictionary[id].radians;
         Debug.Log(radians);
         newStation.transform.position = new Vector3(
@@ -314,7 +321,6 @@ public class GameManagerScript : MonoBehaviour
         while (true) {
             //check if device was disconnected
             bool debugInitializedAndPopulated = debugCommandsDictionary.ContainsKey(sp) && debugCommandsDictionary[sp].Count != 0;
-            Debug.Log(debugInitializedAndPopulated);
 
             //if it has bytes to read OR the debug array exists AND had stuff in it
 
@@ -356,7 +362,7 @@ public class GameManagerScript : MonoBehaviour
 
                     }
 
-                    if (currentCommand!= null)
+                    if (currentCommand == null)
                     {
                         //spawns a new command
                         switch ((char)incomingByte)
@@ -402,6 +408,7 @@ public class GameManagerScript : MonoBehaviour
                         }
                         else
                         {
+                            Debug.Log("is current command null: " + (currentCommand == null));
                             currentCommand.readNextByte(incomingByte);
                         }
                     }
@@ -467,7 +474,17 @@ public class GameManagerScript : MonoBehaviour
                 );
 
             }
-            
+            visualTrainDictionary[trainID].transform.Find("trainHead").localRotation =
+                Quaternion.Euler(new Vector3(0, 0, 10f));
+           
+           visualTrainDictionary[trainID].transform.Find("trainBack").localRotation =
+                Quaternion.Euler(new Vector3(0, 0, -10f));
+
+           visualTrainDictionary[trainID].transform.rotation = Quaternion.Euler(new Vector3(0, 0,
+                    trainDictionary[trainID].radians * Mathf.Rad2Deg + 90f
+                ));
+
+
         }
 
     }
