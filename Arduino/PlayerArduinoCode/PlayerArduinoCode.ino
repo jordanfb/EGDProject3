@@ -39,6 +39,7 @@ char lastKeyPress = '\0';
 int numPresses = 0;
 
 String keypadInput = "";
+bool sendingTrainPressed = false; // debounce sending trains so we don't try to spam the button.
 
 
 // printer stuff
@@ -262,6 +263,8 @@ void NewGame() {
   rightWord[64] = '\0';
   questionAnswer[64] = '\0';
 
+  SendDebugMessage("New Game Called on Player");
+
   // print out help messages to players! FIX
   //  printer.println("Welcome to the incredibe game of Three Dimensional Chess! In this game you will be playing against your opponent, Captain Picard of the USS Enterprise");
 }
@@ -445,7 +448,7 @@ void HandleIncomingSerial() {
       isTownsperson = true;
       isInitializedForGame = true;
       DisplayCodewords();
-      //      SendDebugMessage("Got Townsfolk keywords");
+      SendDebugMessage("Got Townsfolk keywords");
       break;
     case 'm':
       // send code words
@@ -464,18 +467,18 @@ void HandleIncomingSerial() {
 
       isTownsperson = false;
       isInitializedForGame = true;
-      Serial.write('s');
-      for (int i = 0; i < numCodewords; i++) {
-        int c = 0;
-        while (codewords[i][c] != '\0') {
-          Serial.write(codewords[i][c]);
-          c++;
-        }
-      }
-      Serial.write('\n');
-      Serial.write('\0');
+//      Serial.write('s');
+//      for (int i = 0; i < numCodewords; i++) {
+//        int c = 0;
+//        while (codewords[i][c] != '\0') {
+//          Serial.write(codewords[i][c]);
+//          c++;
+//        }
+//      }
+//      Serial.write('\n');
+//      Serial.write('\0');
       DisplayCodewords();
-      //      SendDebugMessage("Got spy keywords");
+      SendDebugMessage("Got spy keywords");
       break;
     default:
       SendDebugMessage("Got message I couldn't read");
@@ -647,43 +650,59 @@ void loop() {
         //        Serial.println(key); // don't do that that will fuck up the game code
         if (key == '1') {
           // print a help message for now
-          printer.println("HELP INFO:");
-          printer.println("None LOL, DEBUG FIX");
+//          printer.println("HELP INFO:");
+//          printer.println("None LOL, DEBUG FIX");
+
+          // for now, DEBUG FIX, this is equivalent to stopping trains
+          unsigned long t = millis(); //  && (t - stopTrainDebounceTime > debounceTime)
+          if (t > stopTrainAllowedTime) {
+            // if we eventually get lighting up the stop train button to work put it here! FIX Also, if we get this working make sure to disable the pin on new game
+            // stop the train!
+            SendStopTrain();
+            SendDebugMessage("STOP TRAIN PRESSED VIA KEYPAD");
+            // prevent players from pressing this again for some time
+            stopTrainAllowedTime = t + TIME_BETWEEN_PRESSES;
+          }
+          sendingTrainPressed = false; // debounce sending trains
         }
         else if (key == 'A' || key == 'B' || key == 'C' || key == 'D')
         {
-          if (createdTrains < allowedTrains) {
-            if (leftWordLength > 0 && rightWordLength > 0) {
-              // then SEND THE TRAIN
-              printer.print("Sent it to player ");
-              printer.println(key);
-              char dest = key - '@';
-              if (dest >= ARDUINO_ID) {
-                // then increment it by 1 since you can't send trains to yourself!
-                dest++;
+          if (sendingTrainPressed == false) {
+            sendingTrainPressed = true; // debounce sending the train attempts!
+            if (createdTrains < allowedTrains) {
+              if (leftWordLength > 0 && rightWordLength > 0) {
+                // then SEND THE TRAIN
+                printer.print("Sent it to player ");
+                printer.println(key);
+                char dest = key - '@';
+                if (dest >= ARDUINO_ID) {
+                  // then increment it by 1 since you can't send trains to yourself!
+                  dest++;
+                }
+                CreateTrain(dest);
+                createdTrains++;
+                ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
+                SendDebugMessage("CREATED TRAIN PLEASE");
+              } else if (rightWordLength > 0) {
+                // left word too short
+                printer.println("Can't send the train, there's no first choice");
               }
-              CreateTrain(dest);
-              createdTrains++;
-              ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
-              SendDebugMessage("CREATED TRAIN PLEASE");
-            } else if (rightWordLength > 0) {
-              // left word too short
-              printer.println("Can't send the train, there's no first choice");
+              else if (leftWordLength > 0) {
+                // right word too short
+                printer.println("Can't send the train, there's no second choice");
+              } else {
+                // both words are too short
+                printer.println("Can't send the train, you haven't entered any message!");
+              }
             }
-            else if (leftWordLength > 0) {
-              // right word too short
-              printer.println("Can't send the train, there's no second choice");
-            } else {
-              // both words are too short
-              printer.println("Can't send the train, you haven't entered any message!");
+            else {
+              // not allowed to create any more trains than you have until you stop one
+              printer.println(F("Not allowed to create any more trains until you stop the trains you've created!"));
             }
-          }
-          else {
-            // not allowed to create any more trains than you have until you stop one
-            printer.println(F("Not allowed to create any more trains until you stop the trains you've created!"));
           }
         }
         else if (key == '*') {
+          sendingTrainPressed = false; // debounce sending trains
           if (lastKeyPress != '\0') {
             lastKeyPress = '\0';
             numPresses = 0;
@@ -705,6 +724,7 @@ void loop() {
             numPresses = 0;
           }
         } else if (key == '#') {
+          sendingTrainPressed = false; // debounce sending trains
           // first add the letter if it exists so we don't loose any last letters
           if (lastKeyPress != '\0') {
             //          keypadInput += getLetterFromMap(lastKeyPress, numPresses);
@@ -740,8 +760,12 @@ void loop() {
           //          }
         } else {
           //        keypadInput += key;
+          sendingTrainPressed = false; // debounce sending trains
           charPressedRemap(key);
         }
+      } else {
+        // key == NO_KEY
+        sendingTrainPressed = false; // debounce sending trains
       }
       // if we're playing the game then
       HandleButtonPresses();
