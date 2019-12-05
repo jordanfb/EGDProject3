@@ -645,45 +645,42 @@ void loop() {
 
       if (key != NO_KEY) {
         //        Serial.println(key); // don't do that that will fuck up the game code
-        if (key == '1')
+        if (key == '1') {
+          // print a help message for now
+          printer.println("HELP INFO:");
+          printer.println("None LOL, DEBUG FIX");
+        }
+        else if (key == 'A' || key == 'B' || key == 'C' || key == 'D')
         {
           if (createdTrains < allowedTrains) {
             if (leftWordLength > 0 && rightWordLength > 0) {
-              // then DEBUG SEND THE TRAIN I GUESS?
-              // Improve this when we have the correct keypads
-              printer.println(F("DEBUG: Choose who you're sending it to, press their character 1, 2, 3, 4, or 5"));
-              while (ReadCharFromAnalogKeypad() == '1') {
-                // keep reading until we release the 1 key
+              // then SEND THE TRAIN
+              printer.print("Sent it to player ");
+              printer.println(key);
+              char dest = key - '@';
+              if (dest >= ARDUINO_ID) {
+                // then increment it by 1 since you can't send trains to yourself!
+                dest++;
               }
-              while (true) {
-                // choose who to send it to
-                key = ReadCharFromAnalogKeypad();
-                if (key != NO_KEY) {
-                  // is it a valid choice?
-                  if (key == '1' || key == '2' || key == '3' || key == '4' || key == '5') {
-                    // send it to that person!
-                    printer.print("Sent it to player ");
-                    printer.println(key);
-                    CreateTrain(key - '0');
-                    createdTrains++;
-                    ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
-                    SendDebugMessage("CREATED TRAIN PLEASE");
-                    break;
-                  }
-                }
-              }
+              CreateTrain(dest);
+              createdTrains++;
+              ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
+              SendDebugMessage("CREATED TRAIN PLEASE");
             } else if (rightWordLength > 0) {
-              printer.println("Left word has length 0");
+              // left word too short
+              printer.println("Can't send the train, there's no first choice");
             }
             else if (leftWordLength > 0) {
-              printer.println("Right word has length 0");
+              // right word too short
+              printer.println("Can't send the train, there's no second choice");
             } else {
-              printer.println("Can't send, you haven't entered any message!");
+              // both words are too short
+              printer.println("Can't send the train, you haven't entered any message!");
             }
           }
           else {
-            // not allowed to create any more trains
-            printer.println(F("Not allowed to create any more trains!"));
+            // not allowed to create any more trains than you have until you stop one
+            printer.println(F("Not allowed to create any more trains until you stop the trains you've created!"));
           }
         }
         else if (key == '*') {
