@@ -34,8 +34,12 @@ public class GameManagerScript : MonoBehaviour
     private int debugToPlayer =1;
     public Dictionary<int, GameObject> visualTrainDictionary = new Dictionary<int, GameObject>();
     public GameObject trainPrefab;
+    public GameObject stationPrefab;
     float outerRadius = 4f;
     float innerRadius = 2f;
+    public Sprite trainHeadSprite;
+    public Sprite trainTailSprite;
+    public Color[] COLORS = { Color.red, Color.blue, Color.green, Color.magenta, Color.yellow };
     //dictionary of int to the port that it controls
     //1-5 are players
     //6 is the lights
@@ -49,7 +53,7 @@ public class GameManagerScript : MonoBehaviour
 
     public Dictionary<int, List<PlayerData>> votingDictionary = new Dictionary<int, List<PlayerData>>();
     public int currentTrainID = 1;
-    public float timeInBetweenStations = 4f;
+    public float timeForRotation = 4f;
     bool allSerialOpened = true;
 
     public static GameManagerScript instance;
@@ -103,7 +107,10 @@ public class GameManagerScript : MonoBehaviour
 
     public void addDebugTrain(int id) {
         GameObject newTrain = Instantiate(trainPrefab);
-
+        newTrain.transform.Find("trainHead").GetComponent<SpriteRenderer>().color =
+            COLORS[trainDictionary[id].sender - 1];
+        newTrain.transform.Find("trainBack").GetComponent<SpriteRenderer>().color =
+            COLORS[trainDictionary[id].reciever - 1];
         float radians = trainDictionary[id].radians;
         newTrain.transform.position = new Vector3(
             Mathf.Cos(radians)*outerRadius,
@@ -115,7 +122,7 @@ public class GameManagerScript : MonoBehaviour
     }
     public void addDebugStation(int id)
     {
-        GameObject newStation = Instantiate(trainPrefab);
+        GameObject newStation = Instantiate(stationPrefab);
         float radians = playerInfoDictionary[id].radians;
         Debug.Log(radians);
         newStation.transform.position = new Vector3(
@@ -186,7 +193,6 @@ public class GameManagerScript : MonoBehaviour
 
         TryAttachingToAllPorts();
 
-        flash.SetActive(false);
     }
 
     private void OnDestroy()
@@ -276,8 +282,8 @@ public class GameManagerScript : MonoBehaviour
         
         SerialPort originPort = portDictionary[debugFromPlayer];
         Queue<byte> relevantQueue = debugCommandsDictionary[originPort];
-        
-        
+
+        Debug.Log("origin port: " + originPort.PortName);
         
         
         foreach (char c in command) {
@@ -310,24 +316,27 @@ public class GameManagerScript : MonoBehaviour
         //constantly checking if there is an incoming char to the specific serial port
         //if there is a char to read, then it adds it to the current command
         //if there is not a char to read it just continues.
-        bool executingCommand = false;
 
         while (true) {
             //check if device was disconnected
-            if (!sp.IsOpen)
-            {
-                Debug.Log("Port closed when trying to read it " + sp.PortName);
-                break; // it's closed, leave it alone
-            }
-            
             bool debugInitializedAndPopulated = debugCommandsDictionary.ContainsKey(sp) && debugCommandsDictionary[sp].Count != 0;
-            while (sp.BytesToRead > 0 || debugInitializedAndPopulated)
+
+            //if it has bytes to read OR the debug array exists AND had stuff in it
+
+
+
+            
+
+            while (debugInitializedAndPopulated || (sp.IsOpen && sp.BytesToRead > 0))
             {
+
 
                 try
                 {
                     //I should be parsing it as they come in
                     byte incomingByte;
+
+                    
                     if (debugInitializedAndPopulated)
                     {
                         
@@ -338,11 +347,22 @@ public class GameManagerScript : MonoBehaviour
                     else
                     {
 
-                        incomingByte = (byte)sp.ReadChar();
+                        //incomingByte = (byte)sp.ReadChar();
+
+                        if (sp.IsOpen)
+                        {
+                            incomingByte = (byte)sp.ReadChar();
+                        }
+                        else
+                        {
+                            throw new TimeoutException();
+                        }
+
+
 
                     }
 
-                    if (!executingCommand)
+                    if (currentCommand == null)
                     {
                         //spawns a new command
                         switch ((char)incomingByte)
@@ -350,33 +370,27 @@ public class GameManagerScript : MonoBehaviour
                             case 'r':
                                 Debug.Log("setting new command to I AM for sp " + sp.PortName);	
                                 currentCommand = new RecieveIAm(sp);
-                                executingCommand = true;
                                 break;
                             case 'n':
                                 Debug.Log("setting new command to CREATE TRAIN");
                                 currentCommand = new CreateTrain();
-                                executingCommand = true;
                                 break;
                             case 'o':
                                 Debug.Log("setting new command to STOP TRAIN PRESSED");
                                 currentCommand = new StopTrainPressed();
-                                executingCommand = true;
                                 break;
                             case 'p':
                                 Debug.Log("setting new command to ANSWER TRAIN");
                                 currentCommand = new AnswerTrain();
-                                executingCommand = true;
                                 break;
                             case 'q':
                                 Debug.Log("setting new command to SEND VOTE");
                                 currentCommand = new SendVote();
-                                executingCommand = true;
                                 break;
                             case 's':
                                 //Debug.Log("setting new command to DEBUG");
                                 currentCommand = new ReadError();
                                 ((ReadError)currentCommand).whoAmI = sp.PortName;
-                                executingCommand = true;
                                 break;
                             default:
                                 Debug.LogError("Unable to figure out command sent to me: " + incomingByte + " " + (char)incomingByte);
@@ -390,7 +404,6 @@ public class GameManagerScript : MonoBehaviour
                             if (currentCommand != null) {
                                 currentCommand.executePopulatedMessage();
                                 currentCommand = null;
-                                executingCommand = false;
                             }
                         }
                         else
@@ -408,7 +421,9 @@ public class GameManagerScript : MonoBehaviour
         }
     }
 
+    public void handleMessages() {
 
+    }
     public IEnumerator ReleaseTrainAfterTime(float time, int trainID)
     {
         yield return new WaitForSeconds(time);
@@ -420,13 +435,17 @@ public class GameManagerScript : MonoBehaviour
     // Update is called once per frame
 
     //5 seconds for a circle
-    float speed = (2 * Mathf.PI) / 5;
+    //a 4th of the track every seconf. the whole track in 4 seconds
+    float speed = (2 * Mathf.PI) / 4;
+
+    float innerSpeed = (2 * Mathf.PI) / (1f/3.6f);
     public List<string> keywords = new List<string> { "z", "z", "z" };
     void Update()
     {
-
-        if (Input.GetKeyDown(KeyCode.Q)) {
-            serialPortsAvailable.Clear();
+        
+        if (Input.GetKeyDown(KeyCode.Equals))
+        {
+            createTrainWithoutSerialPort();
         }
         if (!waitForAssignmentOnStartUp()) {
             return;
@@ -434,7 +453,8 @@ public class GameManagerScript : MonoBehaviour
 
         //maybe put this in a coroutine
         foreach (int trainID in trainDictionary.Keys) {
-            if (trainDictionary[trainID].isPaused) {
+            if (trainDictionary[trainID].isPaused)
+            {
                 continue;
             }
 
@@ -445,8 +465,8 @@ public class GameManagerScript : MonoBehaviour
                 Mathf.Cos(trainDictionary[trainID].radians) * innerRadius,
                 Mathf.Sin(trainDictionary[trainID].radians) * innerRadius,
                 0f
-
                 );
+                visualTrainDictionary[trainID].transform.Find("trainBack").gameObject.SetActive(false);
             }
             else {
                 visualTrainDictionary[trainID].transform.position = new Vector3(
@@ -457,31 +477,44 @@ public class GameManagerScript : MonoBehaviour
                 );
 
             }
-            
+            visualTrainDictionary[trainID].transform.Find("trainHead").localRotation =
+                Quaternion.Euler(new Vector3(0, 0, 10f));
+           
+           visualTrainDictionary[trainID].transform.Find("trainBack").localRotation =
+                Quaternion.Euler(new Vector3(0, 0, -10f));
+
+           visualTrainDictionary[trainID].transform.rotation = Quaternion.Euler(new Vector3(0, 0,
+                    trainDictionary[trainID].radians * Mathf.Rad2Deg + 90f
+                ));
+
+
         }
 
-        //if (Input.GetKeyDown(KeyCode.P))
-        //{
-        //    foreach (int clientID in portDictionary.Keys)
-        //    {
-        //        SenderHelper.instance.SendCodewords(clientID, keywords.Count, keywords);
-        //    }
-        //}
-
-
-
     }
 
-    public IEnumerator turnFlashOff() {
-        yield return new WaitForSeconds(0.5f);
-        flash.SetActive(false);
-    }
-    public void logOutput(string s) {
-        Debug.Log(s);
+    public void createTrainWithoutSerialPort() {
+
+        int fakeTrainID = 0;
+        for (int i = 1; i < 6; i++) {
+            if (portDictionary.ContainsKey(i)) {
+                continue;
+            }
+            fakeTrainID = i;
+            break;
+        }
+        if (fakeTrainID == 0) {
+            Debug.Log("All Users are assigned");
+            return;
+        }
+
+        SerialPort sp = new SerialPort("fake" + fakeTrainID);
+        RecieveIAm fakeReciept = new RecieveIAm(sp);
+        fakeReciept.recieverID = fakeTrainID;
+        fakeReciept.executePopulatedMessage();
+        StartCoroutine(readPort(sp));
     }
 
 
-   
 }
 
 //immutable

@@ -6,7 +6,7 @@
 #define PIN 6
 #define INNER_PIN 5
 #define NUMBER_OF_PINS_OUTER 100
-#define NUMBER_OF_PINS_INNER 80
+#define NUMBER_OF_PINS_INNER 90
 #define TRAINS_PER_PLAYER 2
 
 // Parameter 1 = number of pixels in strip
@@ -21,7 +21,7 @@ Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER, PIN, NEO_
 Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER, INNER_PIN, NEO_GRB + NEO_KHZ800);
 
 // variables
-int delayTime = 60;
+int delayTime = 20; // 40 LEDS * delayTime / 10 = seconds
 int nodesPerSector = NUMBER_OF_PINS_OUTER / 5;
 int nodesPerInnerSector = NUMBER_OF_PINS_INNER / 5;
 int trainStation = 0;
@@ -72,11 +72,11 @@ void setup() {
   Serial.begin(9600);
   Serial.setTimeout(200);
 
-  //UpdateStripColor(baseColor, outerStrip);
-  //UpdateStripColor(color5, innerStrip);
+  UpdateStripColor(baseColor);
+  UpdateInnerStripColor(baseColor);
 
-  trainStation = (nodesPerSector / 2) - 2;
-  innerStation = (nodesPerInnerSector / 2);
+  //trainStation = (nodesPerSector / 2) - 2;
+  //innerStation = (nodesPerInnerSector / 2);
 
   timeHolder = millis();
 }
@@ -84,18 +84,24 @@ void setup() {
 void loop() {
   // loop through all possible trains and run the functionality they should have at that time
   for (int i = 0; i < (5 * TRAINS_PER_PLAYER); i++) {
-    if (trainsID[i] != 0 && !trainsStopped[i]) { // if there is a spawned train and its not stopped
+    if (trainsID[i] != 0 && !trainsStopped[i] && !answeredTrains[i]) { // if there is a spawned train and its not stopped
       location[i] += 1; // move the train forward one pin
       if (location[i] >= NUMBER_OF_PINS_OUTER) { location[i] %= NUMBER_OF_PINS_OUTER; }
 
       drawTrain(location[i], headColors[i], tailColors[i]); // draw the train on the strip
       outerStrip.show();
-    } else if (trainsStopped[i]) { // if train is stopped
-        drawTrain(location[i], headColors[i], tailColors[i]); // draw the train at the stopped station
-        outerStrip.show();
+    } else if (trainsStopped[i] && !answeredTrains[i]) { // if train is stopped and not on answer track
+      drawTrain(location[i], headColors[i], tailColors[i]); // draw the train at the stopped station
+      outerStrip.show();
+    } else if (trainsStopped[i] && answeredTrains[i]) { // if train is stopped and on answer track
+      drawTrainInner(location[i], headColors[i]);
+      innerStrip.show();
     } else if (answeredTrains[i]) {
-        drawTrainInner(location[i], headColors[i]);
-        innerStrip.show();
+      location[i] += 1;
+      if (location[i] >= NUMBER_OF_PINS_INNER) { location[i] %= NUMBER_OF_PINS_INNER; }
+      
+      drawTrainInner(location[i], headColors[i]);
+      innerStrip.show();
     }
   }
 
@@ -186,7 +192,7 @@ void loop() {
 
 // function to visually draw the lights of a train
 void drawTrain(int i, uint32_t head, uint32_t tail) {
-  outerStrip.setPixelColor(((i + (NUMBER_OF_PINS_OUTER - 1)) % NUMBER_OF_PINS_OUTER), 0, 0, 0);
+  outerStrip.setPixelColor(((i + (NUMBER_OF_PINS_OUTER - 1)) % NUMBER_OF_PINS_OUTER), 50, 50, 50);
   outerStrip.setPixelColor((i) % NUMBER_OF_PINS_OUTER, tail);
   outerStrip.setPixelColor((i + 1) % NUMBER_OF_PINS_OUTER, tail);
   outerStrip.setPixelColor((i + 2) % NUMBER_OF_PINS_OUTER, tail);
@@ -194,7 +200,7 @@ void drawTrain(int i, uint32_t head, uint32_t tail) {
 }
 
 void drawTrainInner(int i, uint32_t head) {
-  innerStrip.setPixelColor(((i + (NUMBER_OF_PINS_INNER - 1)) % NUMBER_OF_PINS_INNER), 0, 0, 0);
+  innerStrip.setPixelColor(((i + (NUMBER_OF_PINS_INNER - 1)) % NUMBER_OF_PINS_INNER), 50, 50, 50);
   innerStrip.setPixelColor((i) % NUMBER_OF_PINS_INNER, head);
   innerStrip.setPixelColor((i+1) % NUMBER_OF_PINS_INNER, head);
 }
@@ -241,7 +247,7 @@ void DestroyTrain(byte trainID) {
     strip = outerStrip;
   }*/
 
-  if(!answeredTrains[trainID]) {   
+  if(!answeredTrains[trainIndex]) {   
     // erase where the train previously was before being stopped
     ResetPin(location[trainIndex]);
     ResetPin(location[trainIndex] + 1);
@@ -267,8 +273,9 @@ void PauseTrain(byte hijacker, byte trainID) {
   int hijackerNumber = ToInt(hijacker) - 1;
   int trainIndex = GetTrainIndex(ToInt(trainID));
 
-  if(!answeredTrains[trainID]) {
+  if(!answeredTrains[trainIndex]) {
     // erase where the train previously was before being stopped
+    SendDebugMessage("PAUSE TRAIN: RESETING OUTER STRIP");
     ResetPin(location[trainIndex]);
     ResetPin(location[trainIndex] + 1);
     ResetPin(location[trainIndex] + 2);
@@ -309,7 +316,7 @@ uint32_t GetColor(byte id) {
   } else {
     SendDebugMessage("ELSE IN GET COLOR");
     SendDebugMessage(id);
-    return outerStrip.Color(50, 0, 0);
+    return outerStrip.Color(50, 50, 50);
   }
 }
 
@@ -344,18 +351,18 @@ void UpdateInnerStripColor(uint32_t color) {
 
 // function to reset a pin to the base color of the outer strip
 void ResetPin(int pin) {
-  outerStrip.setPixelColor(pin, outerStrip.Color(0, 0, 0));
+  outerStrip.setPixelColor(pin, outerStrip.Color(50, 50, 50));
 }
 
 // function to reset a pin to the base color of the inner strip
 void ResetPinInner(int pin) {
-  innerStrip.setPixelColor(pin, innerStrip.Color(0, 0, 0));
+  innerStrip.setPixelColor(pin, innerStrip.Color(50, 50, 50));
 }
 
 // function to reset the game for a new game
 void ResetGame() {
-  UpdateStripColor(outerStrip.Color(0, 0, 0)); // update strip to the base color
-  UpdateInnerStripColor(innerStrip.Color(0, 0, 0));
+  UpdateStripColor(outerStrip.Color(50, 50, 50)); // update strip to the base color
+  UpdateInnerStripColor(innerStrip.Color(50, 50, 50));
 
   // reset all arrays that store train information
   for (int i = 0; i < 5 * TRAINS_PER_PLAYER; i++) {
