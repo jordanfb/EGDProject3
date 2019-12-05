@@ -1,11 +1,12 @@
-#include <Key.h>
-#include <Keypad.h>
+//#include <Key.h>
+//#include <Keypad.h>
 #include "Adafruit_Thermal.h"
 
 
 #include "Arduino.h"
 //#include "Keypad.h"
 
+const int ANALOG_KEYPAD_PIN = A5;
 #define STOP_PIN 11
 #define VOTE_PINS 12 // starts from this pin and goes up 4. i.e. 12, 13, 14, 15 // shouldn't use pin 13 though because that has the blink LED there though, so we should figure this out...
 const unsigned long TIME_BETWEEN_PRESSES = 2000;
@@ -14,18 +15,22 @@ const String playerIDToStringName[] = {"", "Red", "Blue", "Green", "Purple", "Ye
 
 
 
-const byte ROWS = 4; //four rows
-const byte COLS = 3; //three columns
-char keys[ROWS][COLS] = {
-  {'1','2','3'},
-  {'4','5','6'},
-  {'7','8','9'},
-  {'*','0','#'}
-};
-byte rowPins[ROWS] = {5, 6, 7, 8}; //connect to the row pinouts of the keypad
-byte colPins[COLS] = {2, 3, 4}; //connect to the column pinouts of the keypad
+//const byte ROWS = 4; //four rows
+//const byte COLS = 3; //three columns
+//char keys[ROWS][COLS] = {
+//  {'1', '2', '3'},
+//  {'4', '5', '6'},
+//  {'7', '8', '9'},
+//  {'*', '0', '#'}
+//};
+//byte rowPins[ROWS] = {5, 6, 7, 8}; //connect to the row pinouts of the keypad
+//byte colPins[COLS] = {2, 3, 4}; //connect to the column pinouts of the keypad
+const int analog_read_offset = 10;
+char keys1[16] = {'1', '2', '3', 'A', '4', '5', '6', 'B', '7', '8', '9', 'C', '*', '0', '#', 'D'};
+const char NO_KEY = '\0';
 
-Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+//Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+int lastAnalogRead = 0;
 
 // letter tracking
 unsigned long lastKeypressTime = 0;
@@ -69,7 +74,7 @@ char questionAnswer[65]; // max 64 character long strings for everything. Probab
 
 unsigned long stopTrainAllowedTime = 0;
 
-void setup(){
+void setup() {
   Serial.begin(9600);
 
   // NOTE: SOME PRINTERS NEED 9600 BAUD instead of 19200, check test page. (From the test printer we got it needed 19200, but we'll see what happens for the rest of them)
@@ -83,6 +88,59 @@ void setup(){
   pinMode(VOTE_PINS, INPUT_PULLUP + 1); // the other end of it should be connected to ground!
   pinMode(VOTE_PINS, INPUT_PULLUP + 2); // the other end of it should be connected to ground!
   pinMode(VOTE_PINS, INPUT_PULLUP + 3); // the other end of it should be connected to ground!
+}
+
+char ReadCharFromAnalogKeypad() {
+  int reading = analogRead(ANALOG_KEYPAD_PIN);
+  //  if (reading != lastAnalogRead) {
+  //    lastAnalogRead = reading;
+  ////    String debugString = "Reading: " + String(reading);
+  ////    SendDebugMessage(debugString.c_str(), debugString.length());
+  //    Serial.println(reading);
+  //  }
+  int i = 17;
+  //  if (reading > 930) { // this is what it says on the back but it's too close to 2 and fluctuates
+//  Serial.print(reading);
+//  Serial.print(' ');
+  if (reading > 970 + analog_read_offset) {
+    i = 0;
+  } else if (reading > 850 + analog_read_offset) {
+    i = 1;
+  } else if (reading > 790 + analog_read_offset) {
+    i = 2;
+  } else if (reading > 680 + analog_read_offset) {
+    i = 3;
+  } else if (reading > 640 + analog_read_offset) {
+    i = 4;
+  } else if (reading > 600 + analog_read_offset) {
+    i = 5;
+  } else if (reading > 570 + analog_read_offset) {
+    i = 6;
+  } else if (reading > 512 + analog_read_offset) {
+    i = 7;
+  } else if (reading > 487 + analog_read_offset) {
+    i = 8;
+  } else if (reading > 465 + analog_read_offset) {
+    i = 9;
+  } else if (reading > 445 + analog_read_offset) {
+    i = 10;
+  } else if (reading > 410 + analog_read_offset) {
+    i = 11;
+  } else if (reading > 330 + analog_read_offset) {
+    i = 12;
+  } else if (reading > 277 + analog_read_offset) {
+    i = 13;
+  } else if (reading > 238 + analog_read_offset) {
+    i = 14;
+  } else if (reading > 200 + analog_read_offset) {
+    i = 15;
+  } else {
+    // no key pressed
+//    Serial.println('\0');
+    return '\0';
+  }
+//  Serial.println(keys1[i]);
+  return keys1[i];
 }
 
 void AddCharacterToTrain(char c) {
@@ -117,7 +175,7 @@ void charPressedRemap(char c) {
   if (lastKeyPress != c) {
     // add the key!
     if (lastKeyPress != '\0') {
-//      keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+      //      keypadInput += getLetterFromMap(lastKeyPress, numPresses);
       AddCharacterToTrain(getLetterFromMap(lastKeyPress, numPresses));
     }
     lastKeyPress = c;
@@ -127,7 +185,7 @@ void charPressedRemap(char c) {
       // increment the letter
       numPresses++;
     } else {
-//      keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+      //      keypadInput += getLetterFromMap(lastKeyPress, numPresses);
       AddCharacterToTrain(getLetterFromMap(lastKeyPress, numPresses));
       lastKeyPress = c;
       numPresses = 1;
@@ -147,14 +205,14 @@ void ResetCreatedWordsAndAnswer() {
 }
 
 char getLetterFromMap(char keypadChar, int numPresses) {
-//  Serial.println(keypadChar);
+  //  Serial.println(keypadChar);
   numPresses -= 1; // so we can use mod
-  switch(keypadChar) {
+  switch (keypadChar) {
     case '2':
       numPresses %= 3;
       return char(numPresses + 97 + 0);
     case '3':
-//      Serial.println("Got to 3");
+      //      Serial.println("Got to 3");
       numPresses %= 3;
       return char(numPresses + 97 + 3);
     case '4':
@@ -164,7 +222,7 @@ char getLetterFromMap(char keypadChar, int numPresses) {
       numPresses %= 3;
       return char(numPresses + 97 + 9);
     case '6':
-//      Serial.println("Got to 6");
+      //      Serial.println("Got to 6");
       numPresses %= 3;
       return char(numPresses + 97 + 12);
     case '7':
@@ -177,7 +235,7 @@ char getLetterFromMap(char keypadChar, int numPresses) {
       numPresses %= 4;
       return char(numPresses + 97 + 22);
     case '0':
-//      Serial.println("got to space");
+      //      Serial.println("got to space");
       return ' ';
     default:
       return '\0';
@@ -205,7 +263,7 @@ void NewGame() {
   questionAnswer[64] = '\0';
 
   // print out help messages to players! FIX
-//  printer.println("Welcome to the incredibe game of Three Dimensional Chess! In this game you will be playing against your opponent, Captain Picard of the USS Enterprise");
+  //  printer.println("Welcome to the incredibe game of Three Dimensional Chess! In this game you will be playing against your opponent, Captain Picard of the USS Enterprise");
 }
 
 void SendDebugMessage(char message[]) {
@@ -245,11 +303,11 @@ void CreateTrain(char destination) {
   Serial.write('n');
   Serial.write(ARDUINO_ID);
   Serial.write(destination);
-  for (int i =0; i < leftWordLength; i++) {
+  for (int i = 0; i < leftWordLength; i++) {
     Serial.write(leftWord[i]);
   }
   Serial.write('\n');
-  for (int i =0; i < rightWordLength; i++) {
+  for (int i = 0; i < rightWordLength; i++) {
     Serial.write(rightWord[i]);
   }
   Serial.write('\n');
@@ -289,13 +347,14 @@ void HandleButtonPresses() {
       // prevent players from pressing this again for some time
       stopTrainAllowedTime = t + TIME_BETWEEN_PRESSES;
     }
-  } else {
-//    if (digitalRead(STOP_PIN) == LOW) {
-//      SendDebugMessage("Stop train pressed but it's not time to press it");
-//      String debugString = "MS: " + String(stopTrainAllowedTime - t);
-//      SendDebugMessage(debugString.c_str(), debugString.length());
-//    }
   }
+//  else {
+    //    if (digitalRead(STOP_PIN) == LOW) {
+    //      SendDebugMessage("Stop train pressed but it's not time to press it");
+    //      String debugString = "MS: " + String(stopTrainAllowedTime - t);
+    //      SendDebugMessage(debugString.c_str(), debugString.length());
+    //    }
+//  }
 
   // now check for voting pins! Can always vote!
   // these are pulled high so if they're low they're pressed
@@ -318,27 +377,27 @@ void HandleButtonPresses() {
     vote++;
   }
   // don't send vote at the moment because we don't have buttons hooked up there
-//  if (vote > 0) {
-//    // then you voted this frame! Send the vote!
-//    SendVote(vote);
-//  }
+  //  if (vote > 0) {
+  //    // then you voted this frame! Send the vote!
+  //    SendVote(vote);
+  //  }
 }
 
 void HandleIncomingSerial() {
   char messageType = Serial.read();
 
-  switch(messageType) {
+  switch (messageType) {
     case 'a':
       // Who are you?
       // send back our player ID with command I am ____
       while (!Serial.available());
       Serial.read(); // should be null character
-      
+
       Serial.write('r');
       Serial.write(ARDUINO_ID);
       Serial.write('\0');
-//      SendDebugMessage("Got who are you");
-    break;
+      //      SendDebugMessage("Got who are you");
+      break;
     case 'g':
       // display train don't answer
       // print it out and start a countdown to doing other things likely
@@ -376,17 +435,17 @@ void HandleIncomingSerial() {
       numCodewords = Serial.read();
       numCodewords = min(numCodewords, 5);
       // then readin  the codewords!
-//      SendDebugMessage("entered read in codewords");
+      //      SendDebugMessage("entered read in codewords");
       ReadInCodewords(numCodewords);
-//      SendDebugMessage("done reading code words");
+      //      SendDebugMessage("done reading code words");
       while (!Serial.available());
-      if(Serial.read() ==0){
-//        SendDebugMessage("ended with null character");
+      if (Serial.read() == 0) {
+        //        SendDebugMessage("ended with null character");
       } // should be null character
       isTownsperson = true;
       isInitializedForGame = true;
       DisplayCodewords();
-//      SendDebugMessage("Got Townsfolk keywords");
+      //      SendDebugMessage("Got Townsfolk keywords");
       break;
     case 'm':
       // send code words
@@ -395,14 +454,14 @@ void HandleIncomingSerial() {
       numCodewords = Serial.read();
       numCodewords = min(numCodewords, 5);
       // then read in the codewords!
-//      SendDebugMessage("entered read in codewords");
+      //      SendDebugMessage("entered read in codewords");
       ReadInCodewords(numCodewords);
-//      SendDebugMessage("done reading code words");
+      //      SendDebugMessage("done reading code words");
       while (!Serial.available());
-      if(Serial.read() ==0){
-//        SendDebugMessage("ended with null character");
+      if (Serial.read() == 0) {
+        //        SendDebugMessage("ended with null character");
       } // should be null character
-      
+
       isTownsperson = false;
       isInitializedForGame = true;
       Serial.write('s');
@@ -416,53 +475,53 @@ void HandleIncomingSerial() {
       Serial.write('\n');
       Serial.write('\0');
       DisplayCodewords();
-//      SendDebugMessage("Got spy keywords");
+      //      SendDebugMessage("Got spy keywords");
       break;
     default:
       SendDebugMessage("Got message I couldn't read");
       SendDebugMessage(&messageType, 1);
-//      char c = 1;
-//      while (c != '\0') {
-//        // keep reading until the message is over
-//        c = Serial.read();
-//        SendDebugMessage(&c, 1);
-//      }
-//      SendDebugMessage("Done sending bytes I couldn't read");
+      //      char c = 1;
+      //      while (c != '\0') {
+      //        // keep reading until the message is over
+      //        c = Serial.read();
+      //        SendDebugMessage(&c, 1);
+      //      }
+      //      SendDebugMessage("Done sending bytes I couldn't read");
       break; // we could error but for now just ignore it
   }
 }
 
 int ReadStringNewlineEnded(char buff[]) {
   // buffer has to be 65 characters long, word outputs may only be 64 characters long.
-  
+
   int currWordLength = 0;
   // read in this codeword
   // codewords end in newlines
   while (!Serial.available());
   char c = Serial.read();
   while (c != '\n' && c != '\0' && currWordLength < 64) {
-      // add it to the current word
-      buff[currWordLength] = c;
-      currWordLength++;
-      while (!Serial.available());
-      c = Serial.read();
-    }
-    // if it's a newline, then we're set! For now just assume it's a newline I guess?
-//    while (c != '\n' && c != '\0' ) {
-//      // if it exited due to word length then read until we get the newline, this should never occur since we won't have too long codewords but just in case.
-//      c = Serial.read();
-//    }
-    buff[currWordLength] = '\0'; // end it!
-    return currWordLength;
+    // add it to the current word
+    buff[currWordLength] = c;
+    currWordLength++;
+    while (!Serial.available());
+    c = Serial.read();
+  }
+  // if it's a newline, then we're set! For now just assume it's a newline I guess?
+  //    while (c != '\n' && c != '\0' ) {
+  //      // if it exited due to word length then read until we get the newline, this should never occur since we won't have too long codewords but just in case.
+  //      c = Serial.read();
+  //    }
+  buff[currWordLength] = '\0'; // end it!
+  return currWordLength;
 }
 
 void DisplayTrain(bool includeAnswer) {
   printer.println(F("New message:"));
   printer.print(F("FROM: "));
-  printer.println(playerIDToStringName[trainFrom]);  
+  printer.println(playerIDToStringName[trainFrom]);
   printer.print(F("TO: "));
   printer.println(playerIDToStringName[trainTo]);
-  
+
   // display the contents of the message
   printer.println(leftWord);
   printer.println(F(" OR "));
@@ -516,7 +575,7 @@ void DisplayCodewords() {
     printer.println(F("Blend in among the townspeople and send these codewords to the other spy in order to reduce the time that the townsfolk have to vote you out!"));
   }
   printer.justify('C');
-  for (int i =0; i < numCodewords; i++) {
+  for (int i = 0; i < numCodewords; i++) {
     // print out the codewords!
     printer.println(codewords[i]);
   }
@@ -527,36 +586,37 @@ void DisplayCodewords() {
 
 void ReadInCodewords(int num) {
   // read in num codewords and store them in the list
-  for (int i =0; i < num; i++) {
+  for (int i = 0; i < num; i++) {
     ReadStringNewlineEnded(codewords[i]);
-//    int currWordLength = 0;
-//    // read in this codeword
-//    // codewords end in newlines
-//    char c = Serial.read();
-//    while (c != '\n' && currWordLength < 64) {
-//      // add it to the current word
-//      codewords[i][currWordLength] = c;
-//      currWordLength++;
-//      c = Serial.read();
-//    }
-//    // if it's a newline, then we're set! For now just assume it's a newline I guess?
-//    while (c != '\n') {
-//      // if it exited due to word length then read until we get the newline, this should never occur since we won't have too long codewords but just in case.
-//      c = Serial.read();
-//    }
-//    codewords[i][currWordLength] = '\0'; // end it!
+    //    int currWordLength = 0;
+    //    // read in this codeword
+    //    // codewords end in newlines
+    //    char c = Serial.read();
+    //    while (c != '\n' && currWordLength < 64) {
+    //      // add it to the current word
+    //      codewords[i][currWordLength] = c;
+    //      currWordLength++;
+    //      c = Serial.read();
+    //    }
+    //    // if it's a newline, then we're set! For now just assume it's a newline I guess?
+    //    while (c != '\n') {
+    //      // if it exited due to word length then read until we get the newline, this should never occur since we won't have too long codewords but just in case.
+    //      c = Serial.read();
+    //    }
+    //    codewords[i][currWordLength] = '\0'; // end it!
   }
   for (int i = num; i < 5; i++) {
     codewords[i][0] = '\0'; // destroy the other codewords.
   }
 }
 
-void loop(){
+void loop() {
+//  ReadCharFromAnalogKeypad();
   if (isInitializedForGame) {
     if (answeringTrain) {
       // then make them answer the traiiin!
       // if they press 4 or 6 then choose left or right!
-      char key = keypad.getKey();
+      char key = ReadCharFromAnalogKeypad(); //keypad.getKey();
       if (key != NO_KEY) {
         // then they chose a key, is it a good key?
         if (key == '4') {
@@ -571,20 +631,20 @@ void loop(){
       }
     } else {
       // if we're playing the game!
-      char key = keypad.getKey();
+      char key = ReadCharFromAnalogKeypad(); //keypad.getKey();
 
       if (millis() - lastKeypressTime >= timeBetweenLetters) {
         // increment the letter
         if (lastKeyPress != '\0') {
-//          keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+          //          keypadInput += getLetterFromMap(lastKeyPress, numPresses);
           AddCharacterToTrain(getLetterFromMap(lastKeyPress, numPresses));
           lastKeyPress = '\0';
           numPresses = 1;
         }
       }
-    
+
       if (key != NO_KEY) {
-//        Serial.println(key); // don't do that that will fuck up the game code
+        //        Serial.println(key); // don't do that that will fuck up the game code
         if (key == '1')
         {
           if (createdTrains < allowedTrains) {
@@ -592,17 +652,17 @@ void loop(){
               // then DEBUG SEND THE TRAIN I GUESS?
               // Improve this when we have the correct keypads
               printer.println(F("DEBUG: Choose who you're sending it to, press their character 1, 2, 3, 4, or 5"));
-              while (keypad.getKey() == '1') {
+              while (ReadCharFromAnalogKeypad() == '1') {
                 // keep reading until we release the 1 key
               }
               while (true) {
                 // choose who to send it to
-                key = keypad.getKey();
+                key = ReadCharFromAnalogKeypad();
                 if (key != NO_KEY) {
                   // is it a valid choice?
                   if (key == '1' || key == '2' || key == '3' || key == '4' || key == '5') {
                     // send it to that person!
-                      printer.print("Sent it to player ");
+                    printer.print("Sent it to player ");
                     printer.println(key);
                     CreateTrain(key - '0');
                     createdTrains++;
@@ -612,10 +672,10 @@ void loop(){
                   }
                 }
               }
-            } else if (rightWordLength > 0){
+            } else if (rightWordLength > 0) {
               printer.println("Left word has length 0");
             }
-            else if (leftWordLength > 0){
+            else if (leftWordLength > 0) {
               printer.println("Right word has length 0");
             } else {
               printer.println("Can't send, you haven't entered any message!");
@@ -643,46 +703,46 @@ void loop(){
                 rightWord[rightWordLength] = '\0';
               }
             }
-//            keypadInput = keypadInput.substring(0, keypadInput.length()-1);
+            //            keypadInput = keypadInput.substring(0, keypadInput.length()-1);
             lastKeyPress = '\0';
             numPresses = 0;
           }
-        } else if (key == '#'){
+        } else if (key == '#') {
           // first add the letter if it exists so we don't loose any last letters
           if (lastKeyPress != '\0') {
-//          keypadInput += getLetterFromMap(lastKeyPress, numPresses);
-          AddCharacterToTrain(getLetterFromMap(lastKeyPress, numPresses));
-          lastKeyPress = '\0';
-          numPresses = 1;
-        }
-        
+            //          keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+            AddCharacterToTrain(getLetterFromMap(lastKeyPress, numPresses));
+            lastKeyPress = '\0';
+            numPresses = 1;
+          }
+
           // toggle between left and right word
           if (creatingLeftTrain) {
             printer.print("Your first option is currently: '");
-            for(int i = 0; i < leftWordLength; i++) {
+            for (int i = 0; i < leftWordLength; i++) {
               printer.print(leftWord[i]);
             }
             printer.println("'"); // close quotes
           } else {
             printer.print("Your second option is currently: '");
-            for(int i = 0; i < rightWordLength; i++) {
+            for (int i = 0; i < rightWordLength; i++) {
               printer.print(rightWord[i]);
             }
             printer.println("'"); // close quotes
           }
           creatingLeftTrain = !creatingLeftTrain;
-//          if (keypadInput.length() > 0 || lastKeyPress != '\0') {
-//            if (lastKeyPress != '\0') {
-//              // then add it on
-//              keypadInput += getLetterFromMap(lastKeyPress, numPresses);
-//              lastKeyPress = '\0';
-//              numPresses = 1;
-//            }
-////            Serial.println(keypadInput); // don't do that that will fuck up the game code, instead, send a train! (or toggle which you're editing! FIX
-//            keypadInput = "";
-//          }
+          //          if (keypadInput.length() > 0 || lastKeyPress != '\0') {
+          //            if (lastKeyPress != '\0') {
+          //              // then add it on
+          //              keypadInput += getLetterFromMap(lastKeyPress, numPresses);
+          //              lastKeyPress = '\0';
+          //              numPresses = 1;
+          //            }
+          ////            Serial.println(keypadInput); // don't do that that will fuck up the game code, instead, send a train! (or toggle which you're editing! FIX
+          //            keypadInput = "";
+          //          }
         } else {
-//        keypadInput += key;
+          //        keypadInput += key;
           charPressedRemap(key);
         }
       }
@@ -690,10 +750,11 @@ void loop(){
       HandleButtonPresses();
     }
   }
-  
+
   if (Serial.available()) {
     HandleIncomingSerial();
     // then echo the string back
-//    Serial.println("Recieved: " + Serial.readString());
+    //    Serial.println("Recieved: " + Serial.readString());
   }
+  delay(2);
 }
