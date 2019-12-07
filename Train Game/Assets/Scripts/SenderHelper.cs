@@ -87,6 +87,7 @@ public class SenderHelper : MonoBehaviour
         byte[] message = { (byte)'c', (byte)stopperID, (byte)trainID, 0 };
 
         GameManagerScript.instance.trainDictionary[trainID].isPaused = true;
+        //set the train equal to the player who stopped it's station
         GameManagerScript.instance.trainDictionary[trainID].radians =
             GameManagerScript.instance.playerInfoDictionary[stopperID].radians;
         GameManagerScript.instance.log("player " + stopperID + " is pausing trainID: " + trainID);

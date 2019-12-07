@@ -280,7 +280,9 @@ public class GameManagerScript : MonoBehaviour
     public void QueueDebugCommand(string command) {
 
         
-        SerialPort originPort = portDictionary[debugFromPlayer];
+        int fromPlayer = command[1] - '0';
+        Debug.Log("from player: " + fromPlayer);
+        SerialPort originPort = portDictionary[fromPlayer];
         Queue<byte> relevantQueue = debugCommandsDictionary[originPort];
 
         Debug.Log("origin port: " + originPort.PortName);
@@ -323,7 +325,9 @@ public class GameManagerScript : MonoBehaviour
 
             //if it has bytes to read OR the debug array exists AND had stuff in it
 
-
+            //if (debugInitializedAndPopulated) {
+            //    Debug.Log(debugCommandsDictionary[sp].Dequeue());
+            //}
 
             
 
@@ -442,7 +446,8 @@ public class GameManagerScript : MonoBehaviour
     public List<string> keywords = new List<string> { "z", "z", "z" };
     void Update()
     {
-        
+
+        //adding ne
         if (Input.GetKeyDown(KeyCode.Equals))
         {
             createTrainWithoutSerialPort();
@@ -453,12 +458,14 @@ public class GameManagerScript : MonoBehaviour
 
         //maybe put this in a coroutine
         foreach (int trainID in trainDictionary.Keys) {
-            if (trainDictionary[trainID].isPaused)
+            //the train is repositioned in the 
+            if (!trainDictionary[trainID].isPaused)
             {
-                continue;
+                trainDictionary[trainID].radians += speed * Time.deltaTime;
             }
 
-            trainDictionary[trainID].radians += speed * Time.deltaTime;
+
+           
             if (trainDictionary[trainID].isOnAnswerStrip)
             {
                 visualTrainDictionary[trainID].transform.position = new Vector3(

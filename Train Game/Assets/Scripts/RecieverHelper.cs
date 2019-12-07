@@ -199,11 +199,12 @@ public class StopTrainPressed : RecieveCommand
                 
             }
         }
-        if (minDist > 0.8f) {
+        if (minDist > 1f)
+        {
             return;
         }
 
-        
+
         //send paused train to hub
         SenderHelper.instance.PauseTrainLights(senderID, minID);
         //display message if it was meant for them and prompt for answer
