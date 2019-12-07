@@ -80,14 +80,15 @@ public class RecieveIAm : RecieveCommand
         {
             PlayerData newPlayer = new PlayerData(recieverID, sp, recieverID * ((2 * Mathf.PI)/5));
             GameManagerScript.instance.playerInfoDictionary.Add(recieverID, newPlayer);
-            GameManagerScript.instance.votingDictionary.Add(recieverID, new List<PlayerData>());
+            GameManagerScript.instance.votingDictionary.Add(recieverID, new Queue<PlayerData>());
             GameManagerScript.instance.addDebugStation(recieverID);
-            if (sp.IsOpen) {
-                SenderHelper.instance.SendCodewords(recieverID, GameManagerScript.instance.keywords.Count, GameManagerScript.instance.keywords);
-            }
+            //send keywords if they are a spy, codewords if they are not.
+            //if (sp.IsOpen) {
+            //    SenderHelper.instance.SendCodewords(recieverID, GameManagerScript.instance.keywords.Count, GameManagerScript.instance.keywords);
+            //}
 
         }
-       
+
 
 
 
@@ -136,17 +137,14 @@ public class CreateTrain : RecieveCommand
             case state.sender:
                 senderID += b;
                 currentState = state.reciever;
-                Debug.Log("finsihed with sender");
                 break;
             case state.reciever:
                 recieverID += b;
                 currentState = state.leftText;
-                Debug.Log("finsihed with reciever");
                 break;
             case state.leftText:
                 if ((char)b == '\n')
                 {
-                    Debug.Log("finsihed with left");
                     currentState = state.rightText;
                 }
                 else {
@@ -157,7 +155,6 @@ public class CreateTrain : RecieveCommand
             case state.rightText:
                 if ((char)b == '\n')
                 {
-                    Debug.Log("finsihed with right");
                     currentState = state.end;
                 }
                 else
@@ -206,6 +203,9 @@ public class StopTrainPressed : RecieveCommand
 
 
         //send paused train to hub
+
+        //
+
         SenderHelper.instance.PauseTrainLights(senderID, minID);
         //display message if it was meant for them and prompt for answer
         if (GameManagerScript.instance.trainDictionary[minID].reciever == senderID)
@@ -368,8 +368,35 @@ public class SendVote : RecieveCommand
     public void executePopulatedMessage()
     {
 
-        GameManagerScript.instance.votingDictionary[senderID].Add(
+        //always will be at least of size 1
+        GameManagerScript.instance.votingDictionary[senderID].Enqueue(
             GameManagerScript.instance.playerInfoDictionary[playerVoted]);
+
+        int firstPlayer;
+        int secondPlayer = '\n';
+        if (GameManagerScript.instance.votingDictionary[senderID].Count >= 2)
+        {
+            if (GameManagerScript.instance.votingDictionary[senderID].Count > 2) {
+                GameManagerScript.instance.votingDictionary[senderID].Dequeue();
+            }
+            Debug.Log("List is now:");
+            foreach (PlayerData p in GameManagerScript.instance.votingDictionary[senderID])
+            {
+                Debug.Log("\tvote: " + p.id);
+            }
+            PlayerData[] voteArray = GameManagerScript.instance.votingDictionary[senderID].ToArray();
+            firstPlayer = voteArray[0].id;
+            secondPlayer = voteArray[1].id;
+        }
+        else {
+            //there is only 1
+            firstPlayer = GameManagerScript.instance.votingDictionary[senderID].Peek().id;
+        }
+
+
+        
+        SenderHelper.instance.SendVoteLights(senderID, firstPlayer, secondPlayer);
+
 
     }
 

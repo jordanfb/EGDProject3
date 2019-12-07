@@ -81,6 +81,21 @@ public class SenderHelper : MonoBehaviour
 
 
     }
+
+    public void PauseAllTrainLights() {
+        //send message to nick here
+        foreach (int trainID in GameManagerScript.instance.trainDictionary.Keys) {
+            GameManagerScript.instance.trainDictionary[trainID].isPaused = true;
+        }
+    }
+    public void ResumeAllTrainLights()
+    {
+        foreach (int trainID in GameManagerScript.instance.trainDictionary.Keys)
+        {
+            GameManagerScript.instance.trainDictionary[trainID].isPaused = false;
+        }
+    }
+
     public void PauseTrainLights(int stopperID, int trainID)
     {
 
@@ -147,8 +162,18 @@ public class SenderHelper : MonoBehaviour
     }
     public void SendVoteLights(int senderID, int candidateAID, int candidateBID)
     {
-        byte[] message = { (byte)'j', (byte)candidateAID, (byte)candidateBID, 0 };
+        byte[] message = { (byte)'j', (byte)senderID, (byte)candidateAID, (byte)candidateBID, 0 };
 
+
+        //sets the color of the vote lights
+        GameManagerScript.instance.visualStationDictionary[senderID].transform.Find("vote1")
+            .gameObject.GetComponent<SpriteRenderer>().color =
+            GameManagerScript.instance.COLORS[candidateAID-1];
+        if (candidateBID != 10) {
+            GameManagerScript.instance.visualStationDictionary[senderID].transform.Find("vote2")
+            .gameObject.GetComponent<SpriteRenderer>().color =
+            GameManagerScript.instance.COLORS[candidateBID-1];
+        }
         if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen) {
             GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
 

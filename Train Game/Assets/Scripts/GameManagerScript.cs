@@ -33,6 +33,8 @@ public class GameManagerScript : MonoBehaviour
     private int debugFromPlayer = 1;
     private int debugToPlayer =1;
     public Dictionary<int, GameObject> visualTrainDictionary = new Dictionary<int, GameObject>();
+    public Dictionary<int, GameObject> visualStationDictionary = new Dictionary<int, GameObject>();
+
     public GameObject trainPrefab;
     public GameObject stationPrefab;
     float outerRadius = 4f;
@@ -40,6 +42,7 @@ public class GameManagerScript : MonoBehaviour
     public Sprite trainHeadSprite;
     public Sprite trainTailSprite;
     public Color[] COLORS = { Color.red, Color.blue, Color.green, Color.magenta, Color.yellow };
+    public TMP_Text timerText;
     //dictionary of int to the port that it controls
     //1-5 are players
     //6 is the lights
@@ -51,18 +54,33 @@ public class GameManagerScript : MonoBehaviour
     public Dictionary<int, TrainData> trainDictionary = new Dictionary<int, TrainData>();
     public Dictionary<int, PlayerData> playerInfoDictionary = new Dictionary<int, PlayerData>();
 
-    public Dictionary<int, List<PlayerData>> votingDictionary = new Dictionary<int, List<PlayerData>>();
+    public Dictionary<int, Queue<PlayerData>> votingDictionary = new Dictionary<int, Queue<PlayerData>>();
     public int currentTrainID = 1;
     public float timeForRotation = 4f;
-    bool allSerialOpened = true;
+    public bool gameStarted = false;
+    public float timePerRound = 60f;
+    public float currentTime;
+    public bool gamePaused= false;
+
+    public List<string> keywords = new List<string>();
+    public List<string> codewords = new List<string>();
+
 
     public static GameManagerScript instance;
 
 
-    bool allHaveBeenAssigned = false;
     private void Awake()
     {
         instance = this;
+    }
+    void Start()
+    {
+        //ex 1 and 2 are players
+        keywords = new List<string> { "DeathStar" };
+        codewords = new List<string> { "Space", "Sphere", "Wow" };
+        currentTime = timePerRound;
+        TryAttachingToAllPorts();
+
     }
 
     public void handleDebugFrom(int input) {
@@ -74,35 +92,53 @@ public class GameManagerScript : MonoBehaviour
         byte[] message = { (byte)'k', 0 };
 
         foreach (SerialPort sp in portDictionary.Values) {
-            sp.Write(message, 0, message.Length);
+            if (sp.IsOpen) {
+                sp.Write(message, 0, message.Length);
+            }
+            
         }
 
         foreach (GameObject go in visualTrainDictionary.Values) {
             Destroy(go);
         }
 
+        assignRoles();
+        foreach (int id in playerInfoDictionary.Keys) {
+            //check if spy here
+            if (playerInfoDictionary[id].isSpy)
+            {
+                SenderHelper.instance.SendCodewords(id, codewords.Count, codewords);
+            }
+            else {
+                SenderHelper.instance.SendKeywords(id, keywords.Count, keywords);
+
+            }
+        }
+        
         trainDictionary.Clear();
         visualTrainDictionary.Clear();
     }
 
-    public void SendCodewordsAndKeywords()
-    {
-        foreach (int user in portDictionary.Keys)
+    public void assignRoles() {
+        int spy1Index = (int)Mathf.Floor(UnityEngine.Random.value * playerInfoDictionary.Count)+1;
+        int spy2Index = spy1Index;
+        while (spy2Index == spy1Index)
         {
-            if (user < 6)
-            {
-                // it's a player!
-                if (UnityEngine.Random.Range(0f, 1) < .5f)
-                {
-                    // they're a townsfolk
-                    SenderHelper.instance.SendKeywords(user, keywords.Count, keywords);
-                } else
-                {
-                    // they're a spy
-                    SenderHelper.instance.SendCodewords(user, keywords.Count, keywords);
-                }
-            }
+            spy2Index = (int)Mathf.Floor(UnityEngine.Random.value * playerInfoDictionary.Count) + 1;
         }
+        foreach (int id in playerInfoDictionary.Keys) {
+            playerInfoDictionary[id].isSpy = false;
+            visualStationDictionary[id].transform.Find("isSpySprite").gameObject.SetActive(false);
+        }
+        Debug.Log("spy index: " + spy1Index);
+        Debug.Log("spy index: " + spy2Index);
+        Debug.Log("number of players in player dictionary: " + playerInfoDictionary.Count);
+        playerInfoDictionary[spy1Index].isSpy = true;
+        visualStationDictionary[spy1Index].transform.Find("isSpySprite").gameObject.SetActive(true);
+        playerInfoDictionary[spy2Index].isSpy = true;
+        visualStationDictionary[spy2Index].transform.Find("isSpySprite").gameObject.SetActive(true);
+
+
     }
 
     public void addDebugTrain(int id) {
@@ -123,6 +159,8 @@ public class GameManagerScript : MonoBehaviour
     public void addDebugStation(int id)
     {
         GameObject newStation = Instantiate(stationPrefab);
+        newStation.GetComponent<SpriteRenderer>().color = COLORS[id-1];
+        visualStationDictionary.Add(id, newStation);
         float radians = playerInfoDictionary[id].radians;
         Debug.Log(radians);
         newStation.transform.position = new Vector3(
@@ -186,14 +224,7 @@ public class GameManagerScript : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        //ex 1 and 2 are players
-
-
-        TryAttachingToAllPorts();
-
-    }
+    
 
     private void OnDestroy()
     {
@@ -279,8 +310,37 @@ public class GameManagerScript : MonoBehaviour
 
     public void QueueDebugCommand(string command) {
 
+        if (command.Equals("PAUSE")) {
+            gamePaused = true;
+            SenderHelper.instance.PauseAllTrainLights();
+            return;
+        }
+        if (command.Equals("RESUME"))
+        {
+            gamePaused = false;
+            SenderHelper.instance.ResumeAllTrainLights();
+            return;
+        }
+        int fromPlayer;
+        if (command.Length >= 2)
+        {
+            if (!char.IsNumber(command[1]))
+            {
+                Debug.LogError("ERROR: second number was not a number");
+                return;
+            }
+            fromPlayer = command[1] - '0';
+            if (fromPlayer > 6 || fromPlayer < 1)
+            {
+                Debug.LogError("ERROR: sender must be between 1 and 6");
+                return;
+            }
+        }
+        else {
+            Debug.LogError("ERROR: command must be at least 2 characters");
+            return;
+        }
         
-        int fromPlayer = command[1] - '0';
         Debug.Log("from player: " + fromPlayer);
         SerialPort originPort = portDictionary[fromPlayer];
         Queue<byte> relevantQueue = debugCommandsDictionary[originPort];
@@ -365,25 +425,41 @@ public class GameManagerScript : MonoBehaviour
 
 
                     }
-
+                    //reject all commands if the game is paused except for vote:)
                     if (currentCommand == null)
                     {
                         //spawns a new command
                         switch ((char)incomingByte)
                         {
                             case 'r':
+                                if (gamePaused) {
+                                    break;
+                                }
                                 Debug.Log("setting new command to I AM for sp " + sp.PortName);	
                                 currentCommand = new RecieveIAm(sp);
                                 break;
                             case 'n':
+                                if (gamePaused)
+                                {
+                                    break;
+                                }
+                                gameStarted = true;
                                 Debug.Log("setting new command to CREATE TRAIN");
                                 currentCommand = new CreateTrain();
                                 break;
                             case 'o':
+                                if (gamePaused)
+                                {
+                                    break;
+                                }
                                 Debug.Log("setting new command to STOP TRAIN PRESSED");
                                 currentCommand = new StopTrainPressed();
                                 break;
                             case 'p':
+                                if (gamePaused)
+                                {
+                                    break;
+                                }
                                 Debug.Log("setting new command to ANSWER TRAIN");
                                 currentCommand = new AnswerTrain();
                                 break;
@@ -443,11 +519,25 @@ public class GameManagerScript : MonoBehaviour
     float speed = (2 * Mathf.PI) / 4;
 
     float innerSpeed = (2 * Mathf.PI) / (1f/3.6f);
-    public List<string> keywords = new List<string> { "z", "z", "z" };
+    
+    public void handleTime() {
+        timerText.text = currentTime.ToString();
+        if (!gameStarted || gamePaused) {
+            return;
+        }
+        currentTime -= Time.deltaTime;
+        if (currentTime <= 0) {
+            Debug.Log("game over");
+            //just restarts the game once it ends.
+            SendNewGameAll();
+        }
+
+    }
     void Update()
     {
-
-        //adding ne
+        
+        
+        //adding fake players
         if (Input.GetKeyDown(KeyCode.Equals))
         {
             createTrainWithoutSerialPort();
@@ -455,7 +545,11 @@ public class GameManagerScript : MonoBehaviour
         if (!waitForAssignmentOnStartUp()) {
             return;
         }
-
+        handleTime();
+        if (!gameStarted)
+        {
+            return;
+        }
         //maybe put this in a coroutine
         foreach (int trainID in trainDictionary.Keys) {
             //the train is repositioned in the 
@@ -557,11 +651,11 @@ public class TrainData {
 
 }
 //immutable
-public struct PlayerData {
+public class PlayerData {
     public int id;
     public SerialPort sp;
     public float radians;
-
+    public bool isSpy = false;
     public PlayerData(int _id, SerialPort _sp, float _radians) {
         id = _id;
         sp = _sp;
