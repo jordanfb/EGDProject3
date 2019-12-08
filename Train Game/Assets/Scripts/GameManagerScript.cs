@@ -89,6 +89,7 @@ public class GameManagerScript : MonoBehaviour
     }
 
     public void SendNewGameAll() {
+        gameStarted = true;
         byte[] message = { (byte)'k', 0 };
 
         foreach (SerialPort sp in portDictionary.Values) {
@@ -104,7 +105,11 @@ public class GameManagerScript : MonoBehaviour
 
         assignRoles();
         foreach (int id in playerInfoDictionary.Keys) {
-            //check if spy here
+            votingDictionary[id].Clear();
+            visualStationDictionary[id].transform.Find("vote1")
+            .gameObject.GetComponent<SpriteRenderer>().color = Color.white;
+            visualStationDictionary[id].transform.Find("vote2")
+            .gameObject.GetComponent<SpriteRenderer>().color = Color.white;
             if (playerInfoDictionary[id].isSpy)
             {
                 SenderHelper.instance.SendCodewords(id, codewords.Count, codewords);
@@ -117,6 +122,8 @@ public class GameManagerScript : MonoBehaviour
         
         trainDictionary.Clear();
         visualTrainDictionary.Clear();
+        //votingDictionary.Clear();
+        
     }
 
     public void assignRoles() {
@@ -391,7 +398,7 @@ public class GameManagerScript : MonoBehaviour
 
             
 
-            while (debugInitializedAndPopulated || (sp.IsOpen && sp.BytesToRead > 0))
+            while ((debugInitializedAndPopulated || (sp.IsOpen && sp.BytesToRead > 0)) && gameStarted)
             {
 
 
@@ -443,7 +450,6 @@ public class GameManagerScript : MonoBehaviour
                                 {
                                     break;
                                 }
-                                gameStarted = true;
                                 Debug.Log("setting new command to CREATE TRAIN");
                                 currentCommand = new CreateTrain();
                                 break;
