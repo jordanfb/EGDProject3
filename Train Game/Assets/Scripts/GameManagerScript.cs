@@ -127,6 +127,9 @@ public class GameManagerScript : MonoBehaviour
     }
 
     public void assignRoles() {
+        if (playerInfoDictionary.Count == 0 || playerInfoDictionary.Count == 1) {
+            return;
+        }
         int spy1Index = (int)Mathf.Floor(UnityEngine.Random.value * playerInfoDictionary.Count)+1;
         int spy2Index = spy1Index;
         while (spy2Index == spy1Index)
