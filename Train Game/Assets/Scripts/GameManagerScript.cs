@@ -539,7 +539,7 @@ public class GameManagerScript : MonoBehaviour
             Debug.Log("game over");
             //just restarts the game once it ends.
             SendNewGameAll();
-            currentTime = 60;
+            currentTime = timePerRound;
         }
 
     }
