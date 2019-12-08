@@ -401,7 +401,7 @@ public class GameManagerScript : MonoBehaviour
 
             
 
-            while ((debugInitializedAndPopulated || (sp.IsOpen && sp.BytesToRead > 0)) && gameStarted)
+            while ((debugInitializedAndPopulated || (sp.IsOpen && sp.BytesToRead > 0)))
             {
 
 
@@ -449,7 +449,7 @@ public class GameManagerScript : MonoBehaviour
                                 currentCommand = new RecieveIAm(sp);
                                 break;
                             case 'n':
-                                if (gamePaused)
+                                if (gamePaused || !gameStarted)
                                 {
                                     break;
                                 }
@@ -457,7 +457,7 @@ public class GameManagerScript : MonoBehaviour
                                 currentCommand = new CreateTrain();
                                 break;
                             case 'o':
-                                if (gamePaused)
+                                if (gamePaused || !gameStarted)
                                 {
                                     break;
                                 }
@@ -465,7 +465,7 @@ public class GameManagerScript : MonoBehaviour
                                 currentCommand = new StopTrainPressed();
                                 break;
                             case 'p':
-                                if (gamePaused)
+                                if (gamePaused || !gameStarted)
                                 {
                                     break;
                                 }
