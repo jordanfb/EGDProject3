@@ -21,8 +21,7 @@ Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER, PIN, NEO_
 Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER, INNER_PIN, NEO_GRB + NEO_KHZ800);
 
 // variables
-int delayTime = 20; // 40 LEDS * delayTime / 10 = seconds
-int showOffsetTime = 6; // hardcoded offset based on how long time it takes to update strips
+int delayTime = 20; // LEDS * delayTime / 1000 = seconds
 int nodesPerSector = NUMBER_OF_PINS_OUTER / 5;
 int nodesPerInnerSector = NUMBER_OF_PINS_INNER / 5;
 int trainStation = 0;
@@ -30,6 +29,7 @@ int innerStation = 0;
 unsigned long timeHolder = 0;
 int clockTick = 750;
 int currentClockPins = 59;
+int loopCount = 0;
 
 // Player colors, color number corresponds to player number, feel free to change these color values here
 uint32_t color1 = outerStrip.Color(255, 0, 0);
@@ -90,26 +90,23 @@ void loop() {
       if (location[i] >= NUMBER_OF_PINS_OUTER) { location[i] %= NUMBER_OF_PINS_OUTER; }
 
       drawTrain(location[i], headColors[i], tailColors[i]); // draw the train on the strip
-//      outerStrip.show();
+      outerStrip.show();
     } else if (trainsStopped[i] && !answeredTrains[i]) { // if train is stopped and not on answer track
       drawTrain(location[i], headColors[i], tailColors[i]); // draw the train at the stopped station
-//      outerStrip.show();
+      outerStrip.show();
     } else if (trainsStopped[i] && answeredTrains[i]) { // if train is stopped and on answer track
       drawTrainInner(location[i], headColors[i]);
-//      innerStrip.show();
+      innerStrip.show();
     } else if (answeredTrains[i]) {
       location[i] += 1;
       if (location[i] >= NUMBER_OF_PINS_INNER) { location[i] %= NUMBER_OF_PINS_INNER; }
       
       drawTrainInner(location[i], headColors[i]);
-//      innerStrip.show();
+      innerStrip.show();
     }
   }
 
-  innerStrip.show();
-  outerStrip.show();
-
-  delay(delayTime - showOffsetTime);
+  delay(delayTime);
 
 // handle incoming serial messages
   if (Serial.peek() != -1) {
@@ -166,6 +163,11 @@ void loop() {
         SendDebugMessage("RESET GAME:\n");
         ResetGame();
         break;
+      case 't': // resync timer
+        loopCount = 0;
+        Serial.write('u');
+        Serial.write('\0');
+        break;
       default:
         SendDebugMessage("WTF");
         SendDebugMessage(buffer_[0]);
@@ -192,6 +194,32 @@ void loop() {
     SetClockTime(10);
     startTest = false;
     }*/
+
+  loopCount++;
+
+  if(loopCount == 100) {
+    Serial.write('v');
+    Serial.write('\0');
+  }
+//  } else if(loopCount < 100) {
+//    int mod = loopCount % 5;
+//    if(mod == 0) {
+//      UpdateInnerStripColor(color1);
+//      UpdateStripColor(color2);
+//    } else if(mod == 1) {
+//      UpdateInnerStripColor(color2);
+//      UpdateStripColor(color3);
+//    } else if(mod == 2) {
+//      UpdateInnerStripColor(color3);
+//      UpdateStripColor(color4);
+//    } else if(mod == 3) {
+//      UpdateInnerStripColor(color4);
+//      UpdateStripColor(color5);
+//    } else if(mod == 4) {
+//      UpdateInnerStripColor(color5);
+//      UpdateStripColor(color1);
+//    }
+//  }
 }
 
 // function to visually draw the lights of a train
@@ -398,7 +426,7 @@ void AnswerTrain(byte trainID) {
   ResetPin(location[trainIndex] + 3);
   outerStrip.show();
 
-  location[trainIndex] = (innerStation + (nodesPerInnerSector * (playerNumber)));
+  location[trainIndex] = (nodesPerInnerSector * (playerNumber));
   trainsStopped[trainIndex] = 0;
   answeredTrains[trainIndex] = 1;
 }
