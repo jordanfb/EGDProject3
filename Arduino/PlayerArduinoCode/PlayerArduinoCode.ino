@@ -49,6 +49,7 @@ int createdTrains = 0;
 int allowedTrains = 1; // for now just allowed trains is 1, we may add a way to change that in the messaging system we'll see.
 bool creatingLeftTrain = true;
 bool answeringTrain = false;
+bool isVoting = false; // debounce the voting
 
 // train data!
 char trainID = 1;
@@ -243,6 +244,7 @@ void NewGame() {
   creatingLeftTrain = true;
   stopTrainAllowedTime = 0; // allowed to stop a train!
   answeringTrain = false;
+  isVoting = false;
 
   ResetCreatedWordsAndAnswer();
 
@@ -369,8 +371,13 @@ void HandleButtonPresses() {
   }
 //   don't send vote at the moment because we don't have buttons hooked up there
     if (vote > 0) {
-      // then you voted this frame! Send the vote!
-      SendVote(vote);
+      if (isVoting == false) {
+        // then you voted this frame! Send the vote!
+        SendVote(vote);
+        isVoting = true; // debounce voting
+      }
+    } else {
+      isVoting = false; // debounce voting
     }
 }
 
