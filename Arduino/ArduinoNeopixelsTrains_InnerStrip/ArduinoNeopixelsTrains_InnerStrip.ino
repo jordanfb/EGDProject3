@@ -42,7 +42,7 @@ uint32_t allColors[] = {color1, color2, color3, color4, color5};
 int tester = 1;
 
 // arrays for each info for a players trains
-int playerVotes[5 * TRAINS_PER_PLAYER];
+int playerVotes[10];
 int trainsID[5 * TRAINS_PER_PLAYER];
 int trainsStopped[5 * TRAINS_PER_PLAYER];
 int answeredTrains[5 * TRAINS_PER_PLAYER];
@@ -107,6 +107,10 @@ void loop() {
       drawTrainInner(location[i], headColors[i]);
 //      innerStrip.show();
     }
+  }
+
+  for(int i=0; i<5; i++) {
+    GenerateVoteColors(i, playerVotes[i * 2], playerVotes[(i * 2) + 1]);
   }
 
   outerStrip.show();
@@ -445,7 +449,30 @@ void Vote(byte senderID, byte vote1, byte vote2) {
   int voteIndex = playerNumber * 2;
 
   playerVotes[voteIndex] = ToInt(vote1);
-  playerVotes[voteIndex + 1] = ToInt(vote2);
+
+  if(ToInt(vote2) != 6) {
+    playerVotes[voteIndex + 1] = ToInt(vote2);
+  }
+}
+
+void GenerateVoteColors(int player, int vote1, int vote2) {
+  uint32_t c1;
+  uint32_t c2;
+
+  if(vote1 == 1) { c1 = color1; }
+  else if(vote1 == 2) { c1 = color2; }
+  else if(vote1 == 3) { c1 = color3; }
+  else if(vote1 == 4) { c1 = color4; }
+  else if(vote1 == 5) { c1 = color5; }
+
+  if(vote2 == 1) { c2 = color1; }
+  else if(vote2 == 2) { c2 = color2; }
+  else if(vote2 == 3) { c2 = color3; }
+  else if(vote2 == 4) { c2 = color4; }
+  else if(vote2 == 5) { c2 = color5; }
+  
+  outerStrip.setPixelColor(120 + (player * 2), c1);
+  outerStrip.setPixelColor(121 + (player * 2), c2);
 }
 
 // helper function to turn a trainID into its corresponding index value
