@@ -96,6 +96,44 @@ public class RecieveIAm : RecieveCommand
     }
 }
 
+/// <summary>
+/// this is for the lights to tell you their current speed after they get connected in case it isn't restarted
+/// </summary>
+public class RecieveSetSpeed : RecieveCommand
+{
+
+    private enum state
+    {
+        speed,
+        finished,
+    }
+
+    state currentState = state.speed;
+    public RecieveSetSpeed()
+    {
+
+    }
+
+    public void readNextByte(byte b)
+    {
+        switch (currentState)
+        {
+            case state.speed:
+                GameManagerScript.instance.currentLightDelay = (char)b;
+                Debug.Log("Recieved that light speed is " + GameManagerScript.instance.currentLightDelay);
+                currentState = state.finished;
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void executePopulatedMessage()
+    {
+        // already handled in the readnextbyte function
+    }
+}
+
 
 
 public class RecieveStartResync : RecieveCommand
@@ -120,6 +158,8 @@ public class RecieveEndResync : RecieveCommand
     {
         GameManagerScript.instance.isSyncing = false;
         Debug.Log("Resynced and got " + GameManagerScript.instance.resyncTimer + " which is actually " + (GameManagerScript.instance.resyncTimer / GameManagerScript.instance.resyncLoops));
+        char speed = (char)((GameManagerScript.instance.currentLightDelay) - ((GameManagerScript.instance.resyncTimer - GameManagerScript.instance.timeForRotation) * 10));
+        Debug.Log("It will timer to be " + (int)speed);
     }
 }
 

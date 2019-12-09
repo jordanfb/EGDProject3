@@ -17,19 +17,19 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER + 20, PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER, INNER_PIN, NEO_GRB + NEO_KHZ800);
 
 // variables
-int delayTime = 20; // 40 LEDS * delayTime / 10 = seconds
-int showOffsetTime = 6; // hardcoded offset based on how long time it takes to update strips
+int delayTime = 20; // LEDS * delayTime / 1000 = seconds
 int nodesPerSector = NUMBER_OF_PINS_OUTER / 5;
 int nodesPerInnerSector = NUMBER_OF_PINS_INNER / 5;
 int trainStation = 0;
-int innerStation = 0;
+int innerStation = 1;
 unsigned long timeHolder = 0;
 int clockTick = 750;
 int currentClockPins = 59;
+int loopCount = 0;
 
 // Player colors, color number corresponds to player number, feel free to change these color values here
 uint32_t color1 = outerStrip.Color(255, 0, 0);
@@ -75,6 +75,9 @@ void setup() {
 
   UpdateStripColor(baseColor);
   UpdateInnerStripColor(baseColor);
+  for(int i=110; i<120; i++) {
+    outerStrip.setPixelColor(i, baseColor);
+  }
 
   //trainStation = (nodesPerSector / 2) - 2;
   //innerStation = (nodesPerInnerSector / 2);
@@ -106,10 +109,10 @@ void loop() {
     }
   }
 
-  innerStrip.show();
   outerStrip.show();
+  innerStrip.show();
 
-  delay(delayTime - showOffsetTime);
+  delay(delayTime);
 
 // handle incoming serial messages
   if (Serial.peek() != -1) {
@@ -132,6 +135,9 @@ void loop() {
         SendDebugMessage("WHO ARE YOU?:\n");
         Serial.write('r');
         Serial.write((byte)6);
+        Serial.write('\0');
+        Serial.write('i');
+        Serial.write((byte)delayTime);
         Serial.write('\0');
         break;
       case (byte)'b': // create a train
@@ -156,7 +162,7 @@ void loop() {
         break;
       case 'i': // set speed of lights
         SendDebugMessage("SETTING SPEED:\n");
-        SetSpeed(buffer_[1], buffer_[2]);
+        SetSpeed(buffer_[1]);
         break;
       case 'j': // send player votes in
         SendDebugMessage("CASTING VOTES:\n");
@@ -165,6 +171,11 @@ void loop() {
       case 'k': // new game
         SendDebugMessage("RESET GAME:\n");
         ResetGame();
+        break;
+      case 't': // resync timer
+        loopCount = 0;
+        Serial.write('u');
+        Serial.write('\0');
         break;
       default:
         SendDebugMessage("WTF");
@@ -192,6 +203,32 @@ void loop() {
     SetClockTime(10);
     startTest = false;
     }*/
+
+  loopCount++;
+
+  if(loopCount == 100) {
+    Serial.write('v');
+    Serial.write('\0');
+  }
+//  } else if(loopCount < 100) {
+//    int mod = loopCount % 5;
+//    if(mod == 0) {
+//      UpdateInnerStripColor(color1);
+//      UpdateStripColor(color2);
+//    } else if(mod == 1) {
+//      UpdateInnerStripColor(color2);
+//      UpdateStripColor(color3);
+//    } else if(mod == 2) {
+//      UpdateInnerStripColor(color3);
+//      UpdateStripColor(color4);
+//    } else if(mod == 3) {
+//      UpdateInnerStripColor(color4);
+//      UpdateStripColor(color5);
+//    } else if(mod == 4) {
+//      UpdateInnerStripColor(color5);
+//      UpdateStripColor(color1);
+//    }
+//  }
 }
 
 // function to visually draw the lights of a train
@@ -218,7 +255,7 @@ void SpawnTrain(byte sender, byte receiver, byte trainID) {
   int playerNumber = (ToInt(sender) - 1) * TRAINS_PER_PLAYER;
   int startPosition = (trainStation + (nodesPerSector * (ToInt(sender) - 1)));
   drawTrain(startPosition, fromColor, toColor);
-  outerStrip.show();
+//  outerStrip.show();
 
 //  SendDebugMessage(sender);
 //  SendDebugMessage(receiver);
@@ -257,11 +294,11 @@ void DestroyTrain(byte trainID) {
     ResetPin(location[trainIndex] + 1);
     ResetPin(location[trainIndex] + 2);
     ResetPin(location[trainIndex] + 3);
-    outerStrip.show();
+//    outerStrip.show();
   } else {
     ResetPinInner(location[trainIndex]);
     ResetPinInner(location[trainIndex] + 1);
-    innerStrip.show();
+//    innerStrip.show();
   }
 
   location[trainIndex] = 0;
@@ -284,15 +321,14 @@ void PauseTrain(byte hijacker, byte trainID) {
     ResetPin(location[trainIndex] + 1);
     ResetPin(location[trainIndex] + 2);
     ResetPin(location[trainIndex] + 3);
-    outerStrip.show();
+    location[trainIndex] = (trainStation + (nodesPerSector * hijackerNumber));
   } else {
     ResetPinInner(location[trainIndex]);
     ResetPinInner(location[trainIndex] + 1);
-    innerStrip.show();
+    location[trainIndex] = (innerStation + (nodesPerInnerSector * hijackerNumber));
   }
 
   // set location to the station of the player who hijacked it
-  location[trainIndex] = (trainStation + (nodesPerSector * hijackerNumber));
   trainsStopped[trainIndex] = 1;
 }
 
@@ -325,12 +361,12 @@ uint32_t GetColor(byte id) {
 }
 
 // function to change the speed that lights are delayed by
-void SetSpeed(byte newSpeed, byte questionStrip) {
-  if (ToInt(questionStrip) == 0) {
-    SendDebugMessage("question strip was 0");
-  } else if (ToInt(questionStrip) == 1) {
-    SendDebugMessage("question strip was 1");
-  }
+void SetSpeed(byte newSpeed) {
+//  if (ToInt(questionStrip) == 0) {
+//    SendDebugMessage("question strip was 0");
+//  } else if (ToInt(questionStrip) == 1) {
+//    SendDebugMessage("question strip was 1");
+//  }
   //set to time between station
   delayTime = ToInt(newSpeed);
 }
@@ -341,7 +377,7 @@ void UpdateStripColor(uint32_t color) {
     outerStrip.setPixelColor(i, color);
   }
 
-  outerStrip.show();
+//  outerStrip.show();
 }
 
 // function to update the inner strip to a single color
@@ -350,7 +386,7 @@ void UpdateInnerStripColor(uint32_t color) {
     innerStrip.setPixelColor(i, color);
   }
 
-  innerStrip.show();
+//  innerStrip.show();
 }
 
 // function to reset a pin to the base color of the outer strip
@@ -396,9 +432,9 @@ void AnswerTrain(byte trainID) {
   ResetPin(location[trainIndex] + 1);
   ResetPin(location[trainIndex] + 2);
   ResetPin(location[trainIndex] + 3);
-  outerStrip.show();
+//  outerStrip.show();
 
-  location[trainIndex] = (innerStation + (nodesPerInnerSector * (playerNumber)));
+  location[trainIndex] = (nodesPerInnerSector * (playerNumber));
   trainsStopped[trainIndex] = 0;
   answeredTrains[trainIndex] = 1;
 }
@@ -447,7 +483,7 @@ void SetClockLength(int len, Adafruit_NeoPixel strip) {
     }
   }
 
-  strip.show();
+//  strip.show();
 }
 
 // function to adjust how long the clock will take to go through

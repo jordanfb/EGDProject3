@@ -74,6 +74,7 @@ public class GameManagerScript : MonoBehaviour
     public float resyncTimer = 0;
     public int resyncLoops = 100;
     public bool isSyncing = false;
+    public int currentLightDelay = 20;
 
 
     private void Awake()
@@ -483,6 +484,10 @@ public class GameManagerScript : MonoBehaviour
                                 Debug.Log("setting new command to SEND VOTE");
                                 currentCommand = new SendVote();
                                 break;
+                            case 'i':
+                                Debug.Log("setting new command to RECIEVE SET SPEED");
+                                currentCommand = new RecieveSetSpeed();
+                                break;
                             case 'u':
                                 Debug.Log("setting new command to START RESYNC");
                                 currentCommand = new RecieveStartResync();
@@ -644,6 +649,28 @@ public class GameManagerScript : MonoBehaviour
 
         }
     }
+
+    public void SetSpeedBasedOnResync()
+    {
+        // MUST HAVE 100 LIGHTS IN THE OUTER RING
+        if (resyncTimer > 0)
+        {
+            //                  20                      // amount over the correct time
+            // currentLightDelay
+            char speed = (char)(currentLightDelay - ((resyncTimer - timeForRotation) * 10));
+            Debug.Log("Set timer to be " + (int)speed);
+            currentLightDelay = speed;
+            char[] bytesToWrite = { 'i', speed, '\0' };
+            portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
+        }
+    }
+
+    public void SendResync()
+    {
+        char[] bytesToWrite = { 't', '\0' };
+        portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
+    }
+
     void Update()
     {
         if (isSyncing)
