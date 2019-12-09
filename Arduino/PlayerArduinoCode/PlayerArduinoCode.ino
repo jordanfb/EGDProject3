@@ -1,28 +1,16 @@
-//#include <Key.h>
-//#include <Keypad.h>
 #include "Adafruit_Thermal.h"
 
 
 #include "Arduino.h"
-//#include "Keypad.h"
 
 const int ANALOG_KEYPAD_PIN = A5;
 #define STOP_PIN 11
-#define VOTE_PINS 12 // starts from this pin and goes up 4. i.e. 12, 13, 14, 15 // shouldn't use pin 13 though because that has the blink LED there though, so we should figure this out...
+#define VOTE_PINS 2 // starts from this pin and goes up 4. i.e. 12, 13, 14, 15 // shouldn't use pin 13 though because that has the blink LED there though, so we should figure this out...
 const unsigned long TIME_BETWEEN_PRESSES = 2000;
-const char ARDUINO_ID = 2; // 1 to 6
+const char ARDUINO_ID = 1; // 1 to 6
 const String playerIDToStringName[] = {"", "Red", "Blue", "Green", "Purple", "Yellow"}; // no player 0, because that's the null terminating character so we don't send that if we can avoid it
 
 
-
-//const byte ROWS = 4; //four rows
-//const byte COLS = 3; //three columns
-//char keys[ROWS][COLS] = {
-//  {'1', '2', '3'},
-//  {'4', '5', '6'},
-//  {'7', '8', '9'},
-//  {'*', '0', '#'}
-//};
 //byte rowPins[ROWS] = {5, 6, 7, 8}; //connect to the row pinouts of the keypad
 //byte colPins[COLS] = {2, 3, 4}; //connect to the column pinouts of the keypad
 const int analog_read_offset = 10;
@@ -86,9 +74,9 @@ void setup() {
   // begin button pins!
   pinMode(STOP_PIN, INPUT_PULLUP); // the other end of it should be connected to ground!
   pinMode(VOTE_PINS, INPUT_PULLUP); // the other end of it should be connected to ground!
-  pinMode(VOTE_PINS, INPUT_PULLUP + 1); // the other end of it should be connected to ground!
-  pinMode(VOTE_PINS, INPUT_PULLUP + 2); // the other end of it should be connected to ground!
-  pinMode(VOTE_PINS, INPUT_PULLUP + 3); // the other end of it should be connected to ground!
+  pinMode(VOTE_PINS + 1, INPUT_PULLUP); // the other end of it should be connected to ground!
+  pinMode(VOTE_PINS + 2, INPUT_PULLUP); // the other end of it should be connected to ground!
+  pinMode(VOTE_PINS + 3, INPUT_PULLUP); // the other end of it should be connected to ground!
 }
 
 char ReadCharFromAnalogKeypad() {
@@ -379,11 +367,11 @@ void HandleButtonPresses() {
     // then increment it by 1 since you can't vote for yourself!
     vote++;
   }
-  // don't send vote at the moment because we don't have buttons hooked up there
-  //  if (vote > 0) {
-  //    // then you voted this frame! Send the vote!
-  //    SendVote(vote);
-  //  }
+//   don't send vote at the moment because we don't have buttons hooked up there
+    if (vote > 0) {
+      // then you voted this frame! Send the vote!
+      SendVote(vote);
+    }
 }
 
 void HandleIncomingSerial() {
