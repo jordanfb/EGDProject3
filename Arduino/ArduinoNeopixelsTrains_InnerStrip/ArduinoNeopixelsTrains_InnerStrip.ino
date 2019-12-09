@@ -25,7 +25,7 @@ int delayTime = 20; // LEDS * delayTime / 1000 = seconds
 int nodesPerSector = NUMBER_OF_PINS_OUTER / 5;
 int nodesPerInnerSector = NUMBER_OF_PINS_INNER / 5;
 int trainStation = 0;
-int innerStation = 0;
+int innerStation = 1;
 unsigned long timeHolder = 0;
 int clockTick = 750;
 int currentClockPins = 59;
@@ -132,6 +132,9 @@ void loop() {
         SendDebugMessage("WHO ARE YOU?:\n");
         Serial.write('r');
         Serial.write((byte)6);
+        Serial.write('\0');
+        Serial.write('i');
+        Serial.write((byte)delayTime);
         Serial.write('\0');
         break;
       case (byte)'b': // create a train
@@ -315,15 +318,14 @@ void PauseTrain(byte hijacker, byte trainID) {
     ResetPin(location[trainIndex] + 1);
     ResetPin(location[trainIndex] + 2);
     ResetPin(location[trainIndex] + 3);
-//    outerStrip.show();
+    location[trainIndex] = (trainStation + (nodesPerSector * hijackerNumber));
   } else {
     ResetPinInner(location[trainIndex]);
     ResetPinInner(location[trainIndex] + 1);
-//    innerStrip.show();
+    location[trainIndex] = (innerStation + (nodesPerInnerSector * hijackerNumber));
   }
 
   // set location to the station of the player who hijacked it
-  location[trainIndex] = (trainStation + (nodesPerSector * hijackerNumber));
   trainsStopped[trainIndex] = 1;
 }
 
