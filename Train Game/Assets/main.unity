@@ -922,9 +922,9 @@ MonoBehaviour:
   - {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   timerText: {fileID: 997984636}
   currentTrainID: 1
-  timeForRotation: 2.5
+  timeForRotation: 2
   gameStarted: 0
-  timePerRound: 600
+  timePerRound: 6000
   currentTime: 0
   gamePaused: 0
   keywords:

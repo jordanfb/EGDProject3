@@ -69,6 +69,12 @@ public class GameManagerScript : MonoBehaviour
 
     public static GameManagerScript instance;
 
+    [Space]
+    [Header("Resync with the lighting variables")]
+    public float resyncTimer = 0;
+    public int resyncLoops = 100;
+    public bool isSyncing = false;
+
 
     private void Awake()
     {
@@ -477,6 +483,14 @@ public class GameManagerScript : MonoBehaviour
                                 Debug.Log("setting new command to SEND VOTE");
                                 currentCommand = new SendVote();
                                 break;
+                            case 'u':
+                                Debug.Log("setting new command to START RESYNC");
+                                currentCommand = new RecieveStartResync();
+                                break;
+                            case 'v':
+                                Debug.Log("setting new command to END RESYNC");
+                                currentCommand = new RecieveEndResync();
+                                break;
                             case 's':
                                 //Debug.Log("setting new command to DEBUG");
                                 currentCommand = new ReadError();
@@ -640,7 +654,7 @@ public class GameManagerScript : MonoBehaviour
             {
                 if (trainDictionary[trainID].isOnAnswerStrip)
                 {
-                    trainDictionary[trainID].radians += (Mathf.PI * 2 / timeForRotation) * Time.deltaTime * 0.9f;
+                    trainDictionary[trainID].radians += (Mathf.PI * 2 / timeForRotation) * Time.deltaTime / 0.9f;
 
                 }
                 else {
