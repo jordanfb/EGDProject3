@@ -416,7 +416,7 @@ public class SendVote : RecieveCommand
             GameManagerScript.instance.playerInfoDictionary[playerVoted]);
 
         int firstPlayer;
-        int secondPlayer = '\n';
+        int secondPlayer = 6;
         if (GameManagerScript.instance.votingDictionary[senderID].Count >= 2)
         {
             if (GameManagerScript.instance.votingDictionary[senderID].Count > 2) {

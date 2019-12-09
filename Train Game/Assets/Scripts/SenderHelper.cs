@@ -169,7 +169,7 @@ public class SenderHelper : MonoBehaviour
         GameManagerScript.instance.visualStationDictionary[senderID].transform.Find("vote1")
             .gameObject.GetComponent<SpriteRenderer>().color =
             GameManagerScript.instance.COLORS[candidateAID-1];
-        if (candidateBID != 10) {
+        if (candidateBID != 6) {
             GameManagerScript.instance.visualStationDictionary[senderID].transform.Find("vote2")
             .gameObject.GetComponent<SpriteRenderer>().color =
             GameManagerScript.instance.COLORS[candidateBID-1];
@@ -188,6 +188,7 @@ public class SenderHelper : MonoBehaviour
                 );
 
         List<byte> command = new List<byte> { (byte)'g', getNumberAsByte(senderID), getNumberAsByte(recieverID) };
+        
         foreach (char c in optionA)
         {
             command.Add((byte)c);

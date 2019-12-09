@@ -595,6 +595,21 @@ public class GameManagerScript : MonoBehaviour
         foreach (KeyValuePair<int, int> kvp in sortedList) {
             Debug.Log("player " + kvp.Key + " got " + kvp.Value + " votes against them.");
         }
+        //always just gets top 2
+        //3 cases with 6 votes
+        //2 townies, 2 townies, 2 townies
+        //2 townies, 2 townies, 2 spy1
+        //2 townies, 2 townies, 2 spy2
+        //2 townies, 2 townies, 2 spy1
+
+        if (sortedList.Count >= 2) {
+            if (playerInfoDictionary[sortedList[0].Key].isSpy && playerInfoDictionary[sortedList[1].Key].isSpy)
+            {
+                Debug.Log("both the top votes were spies");
+            }
+
+        }
+            
 
         //ok we got all the votes sorted, now we have to check if it is the correct vote
 
@@ -605,8 +620,9 @@ public class GameManagerScript : MonoBehaviour
         if (!playerInfoDictionary[sender].isSpy || !playerInfoDictionary[reciever].isSpy) {
             return;
         }
-        Debug.Log("successful codeword sent from one spy to another");
+        
         if (codewords.Contains(leftText) || codewords.Contains(rightText)) {
+            Debug.Log("successful codeword sent from one spy to another");
             currentTime /= 2f;
         }
     }
