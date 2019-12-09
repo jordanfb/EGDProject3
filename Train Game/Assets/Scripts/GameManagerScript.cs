@@ -638,7 +638,15 @@ public class GameManagerScript : MonoBehaviour
             //the train is repositioned in the 
             if (!trainDictionary[trainID].isPaused)
             {
-                trainDictionary[trainID].radians += (Mathf.PI * 2 / timeForRotation) * Time.deltaTime;
+                if (trainDictionary[trainID].isOnAnswerStrip)
+                {
+                    trainDictionary[trainID].radians += (Mathf.PI * 2 / timeForRotation) * Time.deltaTime * 0.9f;
+
+                }
+                else {
+                    trainDictionary[trainID].radians += (Mathf.PI * 2 / timeForRotation) * Time.deltaTime;
+
+                }
             }
 
 
