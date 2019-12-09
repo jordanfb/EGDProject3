@@ -120,6 +120,8 @@ public class RecieveEndResync : RecieveCommand
     {
         GameManagerScript.instance.isSyncing = false;
         Debug.Log("Resynced and got " + GameManagerScript.instance.resyncTimer + " which is actually " + (GameManagerScript.instance.resyncTimer / GameManagerScript.instance.resyncLoops));
+        char speed = (char)((GameManagerScript.instance.timeForRotation * 10) - ((GameManagerScript.instance.resyncTimer - GameManagerScript.instance.timeForRotation) * 10));
+        Debug.Log("Set timer to be " + (int)speed);
     }
 }
 

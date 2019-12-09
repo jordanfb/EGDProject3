@@ -629,6 +629,18 @@ public class GameManagerScript : MonoBehaviour
         }
     }
 
+    public void SetSpeedBasedOnResync()
+    {
+        if (resyncTimer > 0)
+        {
+            //                  20                      // amount over the correct time
+            char speed = (char)((timeForRotation * 10) - ((resyncTimer - timeForRotation) * 10));
+            Debug.Log("Set timer to be " + (int)speed);
+            char[] bytesToWrite = { 'i', speed, '\0' };
+            portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
+        }
+    }
+
     public void SendResync()
     {
         char[] bytesToWrite = { 't', '\0' };
