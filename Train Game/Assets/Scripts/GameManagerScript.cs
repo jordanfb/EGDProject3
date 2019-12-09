@@ -630,7 +630,10 @@ public class GameManagerScript : MonoBehaviour
     }
     void Update()
     {
-
+        if (isSyncing)
+        {
+            resyncTimer += Time.deltaTime;
+        }
         if (Input.GetKeyDown(KeyCode.V)) {
             generateRandomVote();
         }
