@@ -210,6 +210,7 @@ public class StopTrainPressed : RecieveCommand
         //display message if it was meant for them and prompt for answer
         if (GameManagerScript.instance.trainDictionary[minID].reciever == senderID)
         {
+            
             if (GameManagerScript.instance.trainDictionary[minID].answer.Equals(""))
             {
                 SenderHelper.instance.DisplayTrainThatNeedsAnswer(
@@ -224,7 +225,7 @@ public class StopTrainPressed : RecieveCommand
             else
             {
 
-                //they want to view their train again
+                
                 SenderHelper.instance.DisplayTrainDontAnswer(
                 senderID,
                 GameManagerScript.instance.trainDictionary[minID].sender,
@@ -259,6 +260,20 @@ public class StopTrainPressed : RecieveCommand
         }
 
         if (GameManagerScript.instance.trainDictionary[minID].sender == senderID) {
+
+            //display the answer
+            SenderHelper.instance.DisplayTrainDontAnswer(
+                senderID,
+                GameManagerScript.instance.trainDictionary[minID].sender,
+                GameManagerScript.instance.trainDictionary[minID].reciever,
+                GameManagerScript.instance.trainDictionary[minID].leftText,
+                GameManagerScript.instance.trainDictionary[minID].rightText,
+                GameManagerScript.instance.trainDictionary[minID].answer);
+            GameManagerScript.instance.handleSuccessfulCodewordRecieved(GameManagerScript.instance.trainDictionary[minID].sender,
+                GameManagerScript.instance.trainDictionary[minID].reciever,
+                GameManagerScript.instance.trainDictionary[minID].leftText,
+                GameManagerScript.instance.trainDictionary[minID].rightText
+                );
             SenderHelper.instance.DestroyTrainLights(minID);
         }
     }

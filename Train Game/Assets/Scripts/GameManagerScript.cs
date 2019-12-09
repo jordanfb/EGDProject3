@@ -6,6 +6,7 @@ using System.IO.Ports;
 using System;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
 
 public class GameManagerScript : MonoBehaviour
 {
@@ -37,8 +38,8 @@ public class GameManagerScript : MonoBehaviour
 
     public GameObject trainPrefab;
     public GameObject stationPrefab;
-    float outerRadius = 4f;
-    float innerRadius = 2f;
+    float outerRadius = 3f;
+    float innerRadius = 1.5f;
     public Sprite trainHeadSprite;
     public Sprite trainTailSprite;
     public Color[] COLORS = { Color.red, Color.blue, Color.green, Color.magenta, Color.yellow };
@@ -58,7 +59,7 @@ public class GameManagerScript : MonoBehaviour
     public int currentTrainID = 1;
     public float timeForRotation = 4f;
     public bool gameStarted = false;
-    public float timePerRound = 60f;
+    public float timePerRound = 1000f;
     public float currentTime;
     public bool gamePaused= false;
 
@@ -543,10 +544,83 @@ public class GameManagerScript : MonoBehaviour
         }
 
     }
+
+    public void parseVotes() {
+
+        Dictionary<int, int> roundVoteDictionary = new Dictionary<int, int>();
+        int totalVotes = 0;
+        //loops through all players
+        foreach (int id in playerInfoDictionary.Keys) {
+            //loops through all the players that they have voted for
+            //don't count spy votes
+            
+            foreach (PlayerData player in votingDictionary[id]) {
+                //add them to a dictionary
+                totalVotes++;
+                if (playerInfoDictionary[id].isSpy)
+                {
+                    continue;
+                }
+                if (roundVoteDictionary.ContainsKey(player.id))
+                {
+                    roundVoteDictionary[player.id] += 1;
+                }
+                else {
+                    roundVoteDictionary.Add(player.id, 1);
+                }
+            }
+
+            
+        }
+
+        if (totalVotes != (playerInfoDictionary.Count) * 2) {
+            Debug.Log("not everyone has voted twice");
+        }
+        List<KeyValuePair<int, int>> sortedList = roundVoteDictionary.ToList();
+
+        sortedList.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
+        foreach (KeyValuePair<int, int> kvp in sortedList) {
+            Debug.Log("player " + kvp.Key + " got " + kvp.Value + " votes against them.");
+        }
+
+        //ok we got all the votes sorted, now we have to check if it is the correct vote
+
+        
+    }
+
+    public void handleSuccessfulCodewordRecieved(int sender, int reciever, string rightText, string leftText) {
+        if (!playerInfoDictionary[sender].isSpy || !playerInfoDictionary[reciever].isSpy) {
+            return;
+        }
+        Debug.Log("successful codeword sent from one spy to another");
+        if (codewords.Contains(leftText) || codewords.Contains(rightText)) {
+            currentTime /= 2f;
+        }
+    }
+
+    public void generateRandomVote() {
+        foreach (int id in playerInfoDictionary.Keys) {
+            int randomVote1 = id;
+            while (randomVote1 == id) {
+                randomVote1 = (int)Mathf.Floor(UnityEngine.Random.value * playerInfoDictionary.Count) +1;
+            }
+            int randomVote2 = id;
+            while (randomVote2 == id || randomVote2 == randomVote1)
+            {
+                randomVote2 = (int)Mathf.Floor(UnityEngine.Random.value * playerInfoDictionary.Count) + 1;
+            }
+            QueueDebugCommand("q" + id + randomVote1);
+            QueueDebugCommand("q" + id + randomVote2);
+
+
+        }
+    }
     void Update()
     {
-        
-        
+
+        if (Input.GetKeyDown(KeyCode.V)) {
+            generateRandomVote();
+        }
         //adding fake players
         if (Input.GetKeyDown(KeyCode.Equals))
         {
