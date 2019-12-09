@@ -26,7 +26,7 @@ public class RecieveIAm : RecieveCommand
 {
     public int recieverID;
     public SerialPort sp;
-    
+
     private enum state
     {
         initial,
@@ -40,7 +40,8 @@ public class RecieveIAm : RecieveCommand
     }
     public void readNextByte(byte b)
     {
-        switch (currentState) {
+        switch (currentState)
+        {
             case state.reciever:
                 recieverID += (char)b;
 
@@ -78,7 +79,7 @@ public class RecieveIAm : RecieveCommand
 
         if (recieverID != 6)
         {
-            PlayerData newPlayer = new PlayerData(recieverID, sp, recieverID * ((2 * Mathf.PI)/5));
+            PlayerData newPlayer = new PlayerData(recieverID, sp, recieverID * ((2 * Mathf.PI) / 5));
             GameManagerScript.instance.playerInfoDictionary.Add(recieverID, newPlayer);
             GameManagerScript.instance.votingDictionary.Add(recieverID, new Queue<PlayerData>());
             GameManagerScript.instance.addDebugStation(recieverID);
@@ -92,6 +93,33 @@ public class RecieveIAm : RecieveCommand
 
 
 
+    }
+}
+
+
+
+public class RecieveStartResync : RecieveCommand
+{
+    public RecieveStartResync() { }
+
+    public void readNextByte(byte b) { }
+
+    public void executePopulatedMessage()
+    {
+        GameManagerScript.instance.isSyncing = true;
+        GameManagerScript.instance.resyncTimer = 0;
+    }
+}
+
+public class RecieveEndResync : RecieveCommand
+{
+    public RecieveEndResync() { }
+    public void readNextByte(byte b) { }
+
+    public void executePopulatedMessage()
+    {
+        GameManagerScript.instance.isSyncing = false;
+        Debug.Log("Resynced and got " + GameManagerScript.instance.resyncTimer + " which is actually " + (GameManagerScript.instance.resyncTimer / GameManagerScript.instance.resyncLoops));
     }
 }
 
