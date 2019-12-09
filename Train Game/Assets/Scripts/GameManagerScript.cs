@@ -628,6 +628,13 @@ public class GameManagerScript : MonoBehaviour
 
         }
     }
+
+    public void SendResync()
+    {
+        char[] bytesToWrite = { 't', '\0' };
+        portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
+    }
+
     void Update()
     {
         if (isSyncing)
