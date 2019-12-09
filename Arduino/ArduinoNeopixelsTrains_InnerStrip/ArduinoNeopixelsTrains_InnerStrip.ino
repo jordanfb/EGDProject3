@@ -17,7 +17,7 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER + 20, PIN, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER, INNER_PIN, NEO_GRB + NEO_KHZ800);
 
 // variables
@@ -75,6 +75,9 @@ void setup() {
 
   UpdateStripColor(baseColor);
   UpdateInnerStripColor(baseColor);
+  for(int i=110; i<120; i++) {
+    outerStrip.setPixelColor(i, baseColor);
+  }
 
   //trainStation = (nodesPerSector / 2) - 2;
   //innerStation = (nodesPerInnerSector / 2);
