@@ -59,7 +59,7 @@ public class GameManagerScript : MonoBehaviour
     public int currentTrainID = 1;
     public float timeForRotation = 4f;
     public bool gameStarted = false;
-    public float timePerRound = 60f;
+    public float timePerRound = 1000f;
     public float currentTime;
     public bool gamePaused= false;
 
@@ -583,7 +583,19 @@ public class GameManagerScript : MonoBehaviour
             Debug.Log("player " + kvp.Key + " got " + kvp.Value + " votes against them.");
         }
 
+        //ok we got all the votes sorted, now we have to check if it is the correct vote
+
         
+    }
+
+    public void handleSuccessfulCodewordRecieved(int sender, int reciever, string rightText, string leftText) {
+        if (!playerInfoDictionary[sender].isSpy || !playerInfoDictionary[reciever].isSpy) {
+            return;
+        }
+        Debug.Log("successful codeword sent from one spy to another");
+        if (codewords.Contains(leftText) || codewords.Contains(rightText)) {
+            currentTime /= 2f;
+        }
     }
 
     public void generateRandomVote() {
