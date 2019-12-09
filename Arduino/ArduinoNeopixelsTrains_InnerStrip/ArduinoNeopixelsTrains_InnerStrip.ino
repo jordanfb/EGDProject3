@@ -22,6 +22,7 @@ Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER, INNER_PIN
 
 // variables
 int delayTime = 20; // 40 LEDS * delayTime / 10 = seconds
+int showOffsetTime = 6; // hardcoded offset based on how long time it takes to update strips
 int nodesPerSector = NUMBER_OF_PINS_OUTER / 5;
 int nodesPerInnerSector = NUMBER_OF_PINS_INNER / 5;
 int trainStation = 0;
@@ -89,23 +90,26 @@ void loop() {
       if (location[i] >= NUMBER_OF_PINS_OUTER) { location[i] %= NUMBER_OF_PINS_OUTER; }
 
       drawTrain(location[i], headColors[i], tailColors[i]); // draw the train on the strip
-      outerStrip.show();
+//      outerStrip.show();
     } else if (trainsStopped[i] && !answeredTrains[i]) { // if train is stopped and not on answer track
       drawTrain(location[i], headColors[i], tailColors[i]); // draw the train at the stopped station
-      outerStrip.show();
+//      outerStrip.show();
     } else if (trainsStopped[i] && answeredTrains[i]) { // if train is stopped and on answer track
       drawTrainInner(location[i], headColors[i]);
-      innerStrip.show();
+//      innerStrip.show();
     } else if (answeredTrains[i]) {
       location[i] += 1;
       if (location[i] >= NUMBER_OF_PINS_INNER) { location[i] %= NUMBER_OF_PINS_INNER; }
       
       drawTrainInner(location[i], headColors[i]);
-      innerStrip.show();
+//      innerStrip.show();
     }
   }
 
-  delay(delayTime);
+  innerStrip.show();
+  outerStrip.show();
+
+  delay(delayTime - showOffsetTime);
 
 // handle incoming serial messages
   if (Serial.peek() != -1) {

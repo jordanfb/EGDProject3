@@ -526,9 +526,8 @@ public class GameManagerScript : MonoBehaviour
 
     //5 seconds for a circle
     //a 4th of the track every seconf. the whole track in 4 seconds
-    float speed = (2 * Mathf.PI) / 4;
 
-    float innerSpeed = (2 * Mathf.PI) / (1f/3.6f);
+    //float innerSpeed = (2 * Mathf.PI) / (1f/3.6f);
     
     public void handleTime() {
         timerText.text = currentTime.ToString();
@@ -639,7 +638,7 @@ public class GameManagerScript : MonoBehaviour
             //the train is repositioned in the 
             if (!trainDictionary[trainID].isPaused)
             {
-                trainDictionary[trainID].radians += speed * Time.deltaTime;
+                trainDictionary[trainID].radians += (Mathf.PI * 2 / timeForRotation) * Time.deltaTime;
             }
 
 
