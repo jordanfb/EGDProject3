@@ -280,6 +280,22 @@ public class SenderHelper : MonoBehaviour
         //}
     }
 
+    public void SendParsedVoteLights(int state) {
+        byte[] message = {
+            (byte)state,
+            0
+        };
+    }
+    public void SendParsedVotePlayers(int p1, int p2, int state)
+    {
+        byte[] message = {
+            (byte)p1,
+            (byte)p2,
+            (byte)state,
+            0
+        };
+    }
+
     public void NewGame()
     {
 

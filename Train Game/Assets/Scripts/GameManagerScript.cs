@@ -32,7 +32,7 @@ public class GameManagerScript : MonoBehaviour
     public Dropdown debugFromDropDown;
     public Dropdown debugToDropDown;
     private int debugFromPlayer = 1;
-    private int debugToPlayer =1;
+    private int debugToPlayer = 1;
     public Dictionary<int, GameObject> visualTrainDictionary = new Dictionary<int, GameObject>();
     public Dictionary<int, GameObject> visualStationDictionary = new Dictionary<int, GameObject>();
 
@@ -61,7 +61,7 @@ public class GameManagerScript : MonoBehaviour
     public bool gameStarted = false;
     public float timePerRound = 1000f;
     public float currentTime;
-    public bool gamePaused= false;
+    public bool gamePaused = false;
 
     public List<string> keywords = new List<string>();
     public List<string> codewords = new List<string>();
@@ -92,8 +92,8 @@ public class GameManagerScript : MonoBehaviour
     }
 
     public void handleDebugFrom(int input) {
-        debugFromPlayer = input+1;
-        
+        debugFromPlayer = input + 1;
+
     }
 
     public void SendNewGameAll() {
@@ -104,7 +104,7 @@ public class GameManagerScript : MonoBehaviour
             if (sp.IsOpen) {
                 sp.Write(message, 0, message.Length);
             }
-            
+
         }
 
         foreach (GameObject go in visualTrainDictionary.Values) {
@@ -127,18 +127,18 @@ public class GameManagerScript : MonoBehaviour
 
             }
         }
-        
+
         trainDictionary.Clear();
         visualTrainDictionary.Clear();
         //votingDictionary.Clear();
-        
+
     }
 
     public void assignRoles() {
         if (playerInfoDictionary.Count == 0 || playerInfoDictionary.Count == 1) {
             return;
         }
-        int spy1Index = (int)Mathf.Floor(UnityEngine.Random.value * playerInfoDictionary.Count)+1;
+        int spy1Index = (int)Mathf.Floor(UnityEngine.Random.value * playerInfoDictionary.Count) + 1;
         int spy2Index = spy1Index;
         while (spy2Index == spy1Index)
         {
@@ -167,7 +167,7 @@ public class GameManagerScript : MonoBehaviour
             COLORS[trainDictionary[id].reciever - 1];
         float radians = trainDictionary[id].radians;
         newTrain.transform.position = new Vector3(
-            Mathf.Cos(radians)*outerRadius,
+            Mathf.Cos(radians) * outerRadius,
             Mathf.Sin(radians) * outerRadius,
             0f
 
@@ -177,7 +177,7 @@ public class GameManagerScript : MonoBehaviour
     public void addDebugStation(int id)
     {
         GameObject newStation = Instantiate(stationPrefab);
-        newStation.GetComponent<SpriteRenderer>().color = COLORS[id-1];
+        newStation.GetComponent<SpriteRenderer>().color = COLORS[id - 1];
         visualStationDictionary.Add(id, newStation);
         float radians = playerInfoDictionary[id].radians;
         Debug.Log(radians);
@@ -196,7 +196,7 @@ public class GameManagerScript : MonoBehaviour
     }
     public void handleDebugTo(int input)
     {
-        debugToPlayer = input+1;
+        debugToPlayer = input + 1;
     }
     public void handleDebugInput(string input) {
 
@@ -213,14 +213,14 @@ public class GameManagerScript : MonoBehaviour
         // Display each port name to the console.
         foreach (string port in ports)
         {
-            #if UNITY_STANDALONE_OSX
+#if UNITY_STANDALONE_OSX
             if (!port.Contains("/dev/tty.usb")) {
                 continue;
             }
             Debug.Log("MAC PORT BAYBEE: " + port);
-            #else
-            #endif
-                try
+#else
+#endif
+            try
             {
                 SerialPort testPort = new SerialPort(port);
                 if (testPort.IsOpen)
@@ -242,12 +242,12 @@ public class GameManagerScript : MonoBehaviour
         }
     }
 
-    
+
 
     private void OnDestroy()
     {
         // loop over all the ports we've opened and close them, useful for uploading code
-        foreach(SerialPort p in portsWeveOpened)
+        foreach (SerialPort p in portsWeveOpened)
         {
             p.Close();
             Debug.Log("Closed serial port: " + p.PortName);
@@ -265,7 +265,7 @@ public class GameManagerScript : MonoBehaviour
         List<SerialPort> portsToRemove = new List<SerialPort>();
         foreach (SerialPort sp in serialPortsAvailable)
         {
-            
+
             try
             {
                 if (sp.IsOpen)
@@ -294,7 +294,7 @@ public class GameManagerScript : MonoBehaviour
             }
 
         }
-        for (int i =0; i < portsToRemove.Count; i++)
+        for (int i = 0; i < portsToRemove.Count; i++)
         {
             Debug.Log("Removed potential port that didn't work " + portsToRemove[i].PortName);
             serialPortsAvailable.Remove(portsToRemove[i]);
@@ -358,14 +358,14 @@ public class GameManagerScript : MonoBehaviour
             Debug.LogError("ERROR: command must be at least 2 characters");
             return;
         }
-        
+
         Debug.Log("from player: " + fromPlayer);
         SerialPort originPort = portDictionary[fromPlayer];
         Queue<byte> relevantQueue = debugCommandsDictionary[originPort];
 
         Debug.Log("origin port: " + originPort.PortName);
-        
-        
+
+
         foreach (char c in command) {
             if (c == ' ')
             {
@@ -379,7 +379,7 @@ public class GameManagerScript : MonoBehaviour
             {
                 relevantQueue.Enqueue((byte)c);
             }
-            
+
         }
         relevantQueue.Enqueue(0);
     }
@@ -407,7 +407,7 @@ public class GameManagerScript : MonoBehaviour
             //    Debug.Log(debugCommandsDictionary[sp].Dequeue());
             //}
 
-            
+
 
             while ((debugInitializedAndPopulated || (sp.IsOpen && sp.BytesToRead > 0)))
             {
@@ -418,13 +418,13 @@ public class GameManagerScript : MonoBehaviour
                     //I should be parsing it as they come in
                     byte incomingByte;
 
-                    
+
                     if (debugInitializedAndPopulated)
                     {
-                        
+
                         incomingByte = debugCommandsDictionary[sp].Dequeue();
                         debugInitializedAndPopulated = debugCommandsDictionary.ContainsKey(sp) && debugCommandsDictionary[sp].Count != 0;
-                        
+
                     }
                     else
                     {
@@ -453,7 +453,7 @@ public class GameManagerScript : MonoBehaviour
                                 if (gamePaused) {
                                     break;
                                 }
-                                Debug.Log("setting new command to I AM for sp " + sp.PortName);	
+                                Debug.Log("setting new command to I AM for sp " + sp.PortName);
                                 currentCommand = new RecieveIAm(sp);
                                 break;
                             case 'n':
@@ -547,7 +547,7 @@ public class GameManagerScript : MonoBehaviour
     //a 4th of the track every seconf. the whole track in 4 seconds
 
     //float innerSpeed = (2 * Mathf.PI) / (1f/3.6f);
-    
+
     public void handleTime() {
         timerText.text = currentTime.ToString();
         if (!gameStarted || gamePaused) {
@@ -563,6 +563,29 @@ public class GameManagerScript : MonoBehaviour
 
     }
 
+
+    public int compareVotes(KeyValuePair<int, int> p1, KeyValuePair<int, int> p2) {
+
+
+        if (p1.Value.CompareTo(p2.Value) == 0)
+        {
+            if (playerInfoDictionary[p1.Key].isSpy && !playerInfoDictionary[p2.Key].isSpy)
+            {
+                return -1;
+            }
+            else if (!playerInfoDictionary[p1.Key].isSpy && playerInfoDictionary[p2.Key].isSpy)
+            {
+                return 1;
+            }
+            else {
+                return 0;
+            }
+
+        }
+        return p1.Value.CompareTo(p2.Value);
+
+
+    }
     public void parseVotes() {
 
         Dictionary<int, int> roundVoteDictionary = new Dictionary<int, int>();
@@ -571,7 +594,7 @@ public class GameManagerScript : MonoBehaviour
         foreach (int id in playerInfoDictionary.Keys) {
             //loops through all the players that they have voted for
             //don't count spy votes
-            
+
             foreach (PlayerData player in votingDictionary[id]) {
                 //add them to a dictionary
                 totalVotes++;
@@ -588,16 +611,17 @@ public class GameManagerScript : MonoBehaviour
                 }
             }
 
-            
+
         }
 
         if (totalVotes != (playerInfoDictionary.Count) * 2) {
             Debug.Log("not everyone has voted twice");
+            return;
         }
         List<KeyValuePair<int, int>> sortedList = roundVoteDictionary.ToList();
 
-        sortedList.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
-        
+        sortedList.Sort(compareVotes);
+
         //always just gets top 2
         //3 cases with 6 votes
         //2 townies, 2 townies, 2 townies
@@ -608,35 +632,82 @@ public class GameManagerScript : MonoBehaviour
 
         int maxNumVotes = -1;
         List<KeyValuePair<int, int>> culprits = new List<KeyValuePair<int, int>>();
-        if (sortedList.Count >= 3) {
 
-            foreach (KeyValuePair<int, int> kvp in sortedList) {
-                //if there is a tie for the number o
-                if (kvp.Value >= maxNumVotes) {
-                    maxNumVotes = kvp.Value;
-                    culprits.Add(kvp);
-                } else if (culprits.Count < 2) {
-                    culprits.Add(kvp);
-                }
+
+        foreach (KeyValuePair<int, int> kvp in sortedList) {
+            //if there is a tie for the number o
+            //this works because it goes through the culprits in an ordered list
+            if (kvp.Value >= maxNumVotes) {
+                maxNumVotes = kvp.Value;
+                culprits.Add(kvp);
+            } else if (culprits.Count < 2) {
+                culprits.Add(kvp);
             }
         }
+        KeyValuePair<int, int> p1 = culprits[0];
+        KeyValuePair<int, int> p2 = culprits[1];
 
         if (culprits.Count == 3) {
+            //speacial case for three way tie
+            int numSpies = 0;
+            foreach (KeyValuePair<int, int> kvp in culprits) {
+                if (playerInfoDictionary[kvp.Key].isSpy) {
+                    numSpies += 1;
+                }
+            }
+            if (numSpies == 1)
+            {
+                //1 is spy
+                //2,3 is townie
+                Debug.Log("1 spy in the 3 way tie");
+                Debug.Log("using spy " + culprits[0].Key +
+                    " with townie " + culprits[1].Key);
+                p2 = culprits[1];
 
+            }
+            else if (numSpies == 2)
+            {
+                //1,2 spies
+                //3 is townie
+                Debug.Log("2 spies in the 3 way tie");
+                Debug.Log("using spy " + culprits[0].Key +
+                    " with townie " + culprits[2].Key);
+                p2 = culprits[2];
+            }
+            else {
+                //3 townies
+                //lost the game
+                Debug.Log("3 townies, immedietly lose the game");
+            }
+
+            return;
         }
-        foreach (KeyValuePair<int, int> kvp in culprits)
+        if (playerInfoDictionary[p1.Key].isSpy && playerInfoDictionary[p2.Key].isSpy)
         {
 
-            Debug.Log("player " + kvp.Key + " got "+ kvp.Value + " votes against them.") ;
+            Debug.Log("CORRECTLY guessed spy, winner!");
+            //2 spies
+            
+            SenderHelper.instance.SendParsedVotePlayers(p1.Key, p2.Key, 1);
+            SenderHelper.instance.SendParsedVoteLights(1);
+        }
+        else if (!playerInfoDictionary[p1.Key].isSpy && playerInfoDictionary[p2.Key].isSpy ||
+            playerInfoDictionary[p1.Key].isSpy && !playerInfoDictionary[p2.Key].isSpy)
+        {
+            //one townie and one spy
+
+            SenderHelper.instance.SendParsedVotePlayers(p1.Key, p2.Key, 2);
+            SenderHelper.instance.SendParsedVoteLights(2);
+
+        }
+        else {
+            //if both top 2 are townies
+            SenderHelper.instance.SendParsedVotePlayers(p1.Key, p2.Key, 3);
+            SenderHelper.instance.SendParsedVoteLights(3);
+
         }
 
 
-        
-            
-
-        //ok we got all the votes sorted, now we have to check if it is the correct vote
-
-        
     }
 
     public void handleSuccessfulCodewordRecieved(int sender, int reciever, string rightText, string leftText) {
