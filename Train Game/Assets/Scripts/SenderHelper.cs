@@ -285,8 +285,15 @@ public class SenderHelper : MonoBehaviour
             (byte)state,
             0
         };
+
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen)
+        {
+            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+
+        }
+
     }
-    public void SendParsedVotePlayers(int p1, int p2, int state)
+    public void SendParsedVotePlayers(int reciever, int p1, int p2, int state)
     {
         byte[] message = {
             (byte)p1,
@@ -294,6 +301,11 @@ public class SenderHelper : MonoBehaviour
             (byte)state,
             0
         };
+        if (GameManagerScript.instance.portDictionary[reciever].IsOpen)
+        {
+            GameManagerScript.instance.portDictionary[reciever].Write(message, 0, (char)message.Length);
+
+        }
     }
 
     public void NewGame()
