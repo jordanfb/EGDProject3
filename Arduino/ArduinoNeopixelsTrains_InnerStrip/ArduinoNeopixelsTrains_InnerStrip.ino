@@ -456,8 +456,8 @@ void Vote(byte senderID, byte vote1, byte vote2) {
   int playerNumber = ToInt(senderID) - 1;
   int voteIndex = playerNumber * 2;
 
-  playerVotes[voteIndex] = GetColor(vote1-1);
-  playerVotes[voteIndex + 1] = GetColor(vote2-1);
+  playerVotes[voteIndex] = GetColor(vote1);
+  playerVotes[voteIndex + 1] = GetColor(vote2);
 }
 
 void GenerateVoteColors(int player, uint32_t v1, uint32_t v2) {
