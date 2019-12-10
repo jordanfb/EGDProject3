@@ -453,8 +453,11 @@ public class SendVote : RecieveCommand
     public void executePopulatedMessage()
     {
 
+
         //always will be at least of size 1
-        if (GameManagerScript.instance.votingDictionary.ContainsKey(playerVoted)) {
+        if (GameManagerScript.instance.votingDictionary[senderID].Contains(
+            GameManagerScript.instance.playerInfoDictionary[playerVoted])) {
+            Debug.Log(playerVoted);
             return;
         }
         GameManagerScript.instance.votingDictionary[senderID].Enqueue(
