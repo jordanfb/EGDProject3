@@ -682,31 +682,35 @@ public class GameManagerScript : MonoBehaviour
 
             return;
         }
+
+        byte state = 0;
+
         if (playerInfoDictionary[p1.Key].isSpy && playerInfoDictionary[p2.Key].isSpy)
         {
 
             Debug.Log("CORRECTLY guessed spy, winner!");
             //2 spies
-            
-            SenderHelper.instance.SendParsedVotePlayers(p1.Key, p2.Key, 1);
-            SenderHelper.instance.SendParsedVoteLights(1);
+
+            state = 1;
         }
         else if (!playerInfoDictionary[p1.Key].isSpy && playerInfoDictionary[p2.Key].isSpy ||
             playerInfoDictionary[p1.Key].isSpy && !playerInfoDictionary[p2.Key].isSpy)
         {
             //one townie and one spy
 
-            SenderHelper.instance.SendParsedVotePlayers(p1.Key, p2.Key, 2);
-            SenderHelper.instance.SendParsedVoteLights(2);
+            state = 2;
 
         }
         else {
             //if both top 2 are townies
-            SenderHelper.instance.SendParsedVotePlayers(p1.Key, p2.Key, 3);
-            SenderHelper.instance.SendParsedVoteLights(3);
+            state = 3;
 
         }
+        foreach (int i in portDictionary.Keys) {
+            SenderHelper.instance.SendParsedVotePlayers(i, p1.Key, p2.Key, state);
 
+        }
+        SenderHelper.instance.SendParsedVoteLights(state);
 
     }
 
