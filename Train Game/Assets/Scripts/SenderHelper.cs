@@ -175,8 +175,7 @@ public class SenderHelper : MonoBehaviour
             GameManagerScript.instance.COLORS[candidateBID-1];
         }
         if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen) {
-            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
-
+            GameManagerScript.instance.portDictionary[6].Write(message, 0, message.Length);
         }
     }
     public void DisplayTrainDontAnswer(int stopper, int senderID, int recieverID, string optionA, string optionB, string answer)

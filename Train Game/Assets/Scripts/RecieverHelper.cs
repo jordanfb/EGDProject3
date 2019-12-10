@@ -131,6 +131,7 @@ public class RecieveSetSpeed : RecieveCommand
     public void executePopulatedMessage()
     {
         // already handled in the readnextbyte function
+        GameManagerScript.instance.SendResync();
     }
 }
 
@@ -157,9 +158,10 @@ public class RecieveEndResync : RecieveCommand
     public void executePopulatedMessage()
     {
         GameManagerScript.instance.isSyncing = false;
-        Debug.Log("Resynced and got " + GameManagerScript.instance.resyncTimer + " which is actually " + (GameManagerScript.instance.resyncTimer / GameManagerScript.instance.resyncLoops));
-        char speed = (char)((GameManagerScript.instance.currentLightDelay) - ((GameManagerScript.instance.resyncTimer - GameManagerScript.instance.timeForRotation) * 10));
-        Debug.Log("It will timer to be " + (int)speed);
+        //Debug.Log("Resynced and got " + GameManagerScript.instance.resyncTimer + " which is actually " + (GameManagerScript.instance.resyncTimer / GameManagerScript.instance.resyncLoops));
+        //char speed = (char)((GameManagerScript.instance.currentLightDelay) - ((GameManagerScript.instance.resyncTimer - GameManagerScript.instance.timeForRotation) * 10));
+        //Debug.Log("It will timer to be " + (int)speed);
+        GameManagerScript.instance.SetSpeedBasedOnResync();
     }
 }
 
@@ -451,7 +453,13 @@ public class SendVote : RecieveCommand
     public void executePopulatedMessage()
     {
 
+
         //always will be at least of size 1
+        if (GameManagerScript.instance.votingDictionary[senderID].Contains(
+            GameManagerScript.instance.playerInfoDictionary[playerVoted])) {
+            Debug.Log(playerVoted);
+            return;
+        }
         GameManagerScript.instance.votingDictionary[senderID].Enqueue(
             GameManagerScript.instance.playerInfoDictionary[playerVoted]);
 
