@@ -280,9 +280,10 @@ public class SenderHelper : MonoBehaviour
         //}
     }
 
-    public void SendParsedVoteLights(int state) {
+    public void SendParsedVoteLights(byte state) {
         byte[] message = {
-            (byte)state,
+            (byte)'w',
+            state,
             0
         };
 
@@ -293,14 +294,14 @@ public class SenderHelper : MonoBehaviour
         }
 
     }
-    public void SendParsedVotePlayers(int reciever, int p1, int p2, int state)
+    public void SendParsedVotePlayers(int reciever, int[] peopleVoted, byte state)
     {
-        byte[] message = {
-            (byte)p1,
-            (byte)p2,
-            (byte)state,
-            0
-        };
+        byte[] message = { (byte)'x', 6, 6, 6, 6, 6, state,0 };
+        int indexToBeSet = 1;
+        foreach (int i in peopleVoted) {
+            message[indexToBeSet] = (byte)i;
+            indexToBeSet++;
+        }
         if (GameManagerScript.instance.portDictionary[reciever].IsOpen)
         {
             GameManagerScript.instance.portDictionary[reciever].Write(message, 0, (char)message.Length);

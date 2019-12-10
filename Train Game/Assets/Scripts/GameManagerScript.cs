@@ -611,8 +611,10 @@ public class GameManagerScript : MonoBehaviour
                 }
             }
 
-
         }
+
+
+        //roundVoteDictionary contains only townie votes
 
         if (totalVotes != (playerInfoDictionary.Count) * 2) {
             Debug.Log("not everyone has voted twice");
@@ -620,6 +622,7 @@ public class GameManagerScript : MonoBehaviour
         }
         List<KeyValuePair<int, int>> sortedList = roundVoteDictionary.ToList();
 
+        //sorted list is only townie votes
         sortedList.Sort(compareVotes);
 
         //always just gets top 2
@@ -633,83 +636,65 @@ public class GameManagerScript : MonoBehaviour
         int maxNumVotes = -1;
         List<KeyValuePair<int, int>> culprits = new List<KeyValuePair<int, int>>();
 
-
+        int numSpies = 0;
+        int numTownies = 0;
+        HashSet<int> peopleVotedForByTownies = new HashSet<int>();
         foreach (KeyValuePair<int, int> kvp in sortedList) {
             //if there is a tie for the number o
             //this works because it goes through the culprits in an ordered list
-            if (kvp.Value >= maxNumVotes) {
-                maxNumVotes = kvp.Value;
-                culprits.Add(kvp);
-            } else if (culprits.Count < 2) {
-                culprits.Add(kvp);
+            peopleVotedForByTownies.Add(kvp.Key);
+            if (playerInfoDictionary[kvp.Key].isSpy) {
+                numSpies ++;
+            } else{
+                numTownies ++;
             }
-        }
-        KeyValuePair<int, int> p1 = culprits[0];
-        KeyValuePair<int, int> p2 = culprits[1];
-
-        if (culprits.Count == 3) {
-            //speacial case for three way tie
-            int numSpies = 0;
-            foreach (KeyValuePair<int, int> kvp in culprits) {
-                if (playerInfoDictionary[kvp.Key].isSpy) {
-                    numSpies += 1;
-                }
-            }
-            if (numSpies == 1)
-            {
-                //1 is spy
-                //2,3 is townie
-                Debug.Log("1 spy in the 3 way tie");
-                Debug.Log("using spy " + culprits[0].Key +
-                    " with townie " + culprits[1].Key);
-                p2 = culprits[1];
-
-            }
-            else if (numSpies == 2)
-            {
-                //1,2 spies
-                //3 is townie
-                Debug.Log("2 spies in the 3 way tie");
-                Debug.Log("using spy " + culprits[0].Key +
-                    " with townie " + culprits[2].Key);
-                p2 = culprits[2];
-            }
-            else {
-                //3 townies
-                //lost the game
-                Debug.Log("3 townies, immedietly lose the game");
-            }
-
-            return;
         }
 
         byte state = 0;
+        if (numSpies == 0) {
+            
+            Debug.Log("Instantly lose");
 
-        if (playerInfoDictionary[p1.Key].isSpy && playerInfoDictionary[p2.Key].isSpy)
-        {
+            state = 3;
+            foreach (int i in peopleVotedForByTownies)
+            {
+                Debug.Log("included in message: " + i);
+            }
+            foreach (int i in portDictionary.Keys)
+            {
+                SenderHelper.instance.SendParsedVotePlayers(i, peopleVotedForByTownies.ToArray(), state);
 
-            Debug.Log("CORRECTLY guessed spy, winner!");
-            //2 spies
-
-            state = 1;
+            }
         }
-        else if (!playerInfoDictionary[p1.Key].isSpy && playerInfoDictionary[p2.Key].isSpy ||
-            playerInfoDictionary[p1.Key].isSpy && !playerInfoDictionary[p2.Key].isSpy)
+        else if (numTownies == 0)
         {
-            //one townie and one spy
+            Debug.Log("instantly win");
+            
+            state = 1;
+            foreach (int i in peopleVotedForByTownies)
+            {
+                Debug.Log("included in message: " + i);
+            }
+            foreach (int i in portDictionary.Keys)
+            {
+                SenderHelper.instance.SendParsedVotePlayers(i, peopleVotedForByTownies.ToArray(), state);
 
-            state = 2;
-
+            }
         }
         else {
-            //if both top 2 are townies
-            state = 3;
+            Debug.Log("some townies and some spies in townie vote");
+            state = 2;
+            foreach (int i in roundVoteDictionary.Keys) {
+                Debug.Log("included in message: " + i);
+            }
+            foreach (int i in portDictionary.Keys)
+            {
+                SenderHelper.instance.SendParsedVotePlayers(i, roundVoteDictionary.Keys.ToArray(), state);
 
+            }
+            
         }
-        foreach (int i in portDictionary.Keys) {
-            SenderHelper.instance.SendParsedVotePlayers(i, p1.Key, p2.Key, state);
-
-        }
+        
         SenderHelper.instance.SendParsedVoteLights(state);
 
     }
