@@ -266,13 +266,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 147131066}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalRotation: {x: 0, y: -1, z: 0, w: 0}
+  m_LocalPosition: {x: 5, y: -0.45, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 180, y: 0, z: 180}
 --- !u!1 &223592586
 GameObject:
   m_ObjectHideFlags: 0
@@ -934,6 +934,7 @@ MonoBehaviour:
   resyncTimer: 0
   resyncLoops: 100
   isSyncing: 0
+  currentLightDelay: 20
 --- !u!114 &313962591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2101,8 +2102,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1774904974}
   m_HandleRect: {fileID: 1774904973}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.9999998
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2812,7 +2813,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0.9224054, y: 1}
-  m_AnchoredPosition: {x: -0.00003683726, y: 0.000010560487}
+  m_AnchoredPosition: {x: -0.00002279056, y: -0.000036065117}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.0000000031882408, y: 1}
 --- !u!114 &1172947434
@@ -4161,8 +4162,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1376891683}
   m_HandleRect: {fileID: 1376891682}
   m_Direction: 0
-  m_Value: 1
-  m_Size: 0.9999998
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

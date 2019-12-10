@@ -4,7 +4,7 @@
 #include "Arduino.h"
 
 const int ANALOG_KEYPAD_PIN = A5;
-const int STOP_BUTTON_LIGHT_PIN = 13; // should consider changing this to something other than the one with the existing LED on it since that'll make us happier
+const int STOP_BUTTON_LIGHT_PIN = 12;
 #define STOP_PIN 11
 #define VOTE_PINS 2 // starts from this pin and goes up 4. i.e. 2, 3, 4, 5 // shouldn't use pin 13 though because that has the blink LED there though
 const unsigned long TIME_BETWEEN_PRESSES = 2000;
@@ -411,6 +411,7 @@ void HandleIncomingSerial() {
       printer.println(F("Intercepted a train:"));
       DisplayTrain(true);
       ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
+      SendDebugMessage("Intercepted a train don't answer");
       break;
     case 'h':
       // display train you need to answer
