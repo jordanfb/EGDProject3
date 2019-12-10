@@ -597,23 +597,41 @@ public class GameManagerScript : MonoBehaviour
         List<KeyValuePair<int, int>> sortedList = roundVoteDictionary.ToList();
 
         sortedList.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
-        foreach (KeyValuePair<int, int> kvp in sortedList) {
-            Debug.Log("player " + kvp.Key + " got " + kvp.Value + " votes against them.");
-        }
+        
         //always just gets top 2
         //3 cases with 6 votes
         //2 townies, 2 townies, 2 townies
         //2 townies, 2 townies, 2 spy1
         //2 townies, 2 townies, 2 spy2
         //2 townies, 2 townies, 2 spy1
+        //or top 2
 
-        if (sortedList.Count >= 2) {
-            if (playerInfoDictionary[sortedList[0].Key].isSpy && playerInfoDictionary[sortedList[1].Key].isSpy)
-            {
-                Debug.Log("both the top votes were spies");
+        int maxNumVotes = -1;
+        List<KeyValuePair<int, int>> culprits = new List<KeyValuePair<int, int>>();
+        if (sortedList.Count >= 3) {
+
+            foreach (KeyValuePair<int, int> kvp in sortedList) {
+                //if there is a tie for the number o
+                if (kvp.Value >= maxNumVotes) {
+                    maxNumVotes = kvp.Value;
+                    culprits.Add(kvp);
+                } else if (culprits.Count < 2) {
+                    culprits.Add(kvp);
+                }
             }
+        }
+
+        if (culprits.Count == 3) {
 
         }
+        foreach (KeyValuePair<int, int> kvp in culprits)
+        {
+
+            Debug.Log("player " + kvp.Key + " got "+ kvp.Value + " votes against them.") ;
+        }
+
+
+        
             
 
         //ok we got all the votes sorted, now we have to check if it is the correct vote
