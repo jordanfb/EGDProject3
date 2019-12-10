@@ -170,12 +170,11 @@ void loop() {
         SetSpeed(buffer_[1]);
         break;
       case 'j': // send player votes in
-        if(buffer_[3] != (byte)6) {
-          SendDebugMessage("CASTING VOTES:\n");
-          Vote(buffer_[1], buffer_[2], buffer_[3]);
-        } else {
-          SendDebugMessage("Not casting voting");
-        }
+        SendDebugMessage("CASTING VOTES:\n");
+        SendDebugMessage(buffer_[1]);
+        SendDebugMessage(buffer_[2]);
+        SendDebugMessage(buffer_[3]);
+        Vote(buffer_[1], buffer_[2], buffer_[3]);
         break;
       case 'k': // new game
         SendDebugMessage("RESET GAME:\n");
