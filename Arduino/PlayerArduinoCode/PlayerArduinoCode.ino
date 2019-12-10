@@ -4,8 +4,9 @@
 #include "Arduino.h"
 
 const int ANALOG_KEYPAD_PIN = A5;
+const int STOP_BUTTON_LIGHT_PIN = 13; // should consider changing this to something other than the one with the existing LED on it since that'll make us happier
 #define STOP_PIN 11
-#define VOTE_PINS 2 // starts from this pin and goes up 4. i.e. 12, 13, 14, 15 // shouldn't use pin 13 though because that has the blink LED there though, so we should figure this out...
+#define VOTE_PINS 2 // starts from this pin and goes up 4. i.e. 2, 3, 4, 5 // shouldn't use pin 13 though because that has the blink LED there though
 const unsigned long TIME_BETWEEN_PRESSES = 2000;
 const char ARDUINO_ID = 1; // 1 to 6
 const String playerIDToStringName[] = {"", "Red", "Blue", "Green", "Purple", "Yellow"}; // no player 0, because that's the null terminating character so we don't send that if we can avoid it
@@ -78,6 +79,7 @@ void setup() {
   pinMode(VOTE_PINS + 1, INPUT_PULLUP); // the other end of it should be connected to ground!
   pinMode(VOTE_PINS + 2, INPUT_PULLUP); // the other end of it should be connected to ground!
   pinMode(VOTE_PINS + 3, INPUT_PULLUP); // the other end of it should be connected to ground!
+  pinMode(STOP_BUTTON_LIGHT_PIN, OUTPUT);
 }
 
 char ReadCharFromAnalogKeypad() {
@@ -245,6 +247,7 @@ void NewGame() {
   stopTrainAllowedTime = 0; // allowed to stop a train!
   answeringTrain = false;
   isVoting = false;
+  digitalWrite(STOP_BUTTON_LIGHT_PIN, HIGH); // allowed to stop a train so turn on the light
 
   ResetCreatedWordsAndAnswer();
 
@@ -333,6 +336,7 @@ void HandleButtonPresses() {
   unsigned long t = millis(); //  && (t - stopTrainDebounceTime > debounceTime)
   if (t > stopTrainAllowedTime) {
     // if we eventually get lighting up the stop train button to work put it here! FIX Also, if we get this working make sure to disable the pin on new game
+    digitalWrite(STOP_BUTTON_LIGHT_PIN, HIGH);
     if (digitalRead(STOP_PIN) == LOW) {
       // stop the train!
       SendStopTrain();
@@ -340,6 +344,8 @@ void HandleButtonPresses() {
       // prevent players from pressing this again for some time
       stopTrainAllowedTime = t + TIME_BETWEEN_PRESSES;
     }
+  } else {
+    digitalWrite(STOP_BUTTON_LIGHT_PIN, LOW);
   }
 //  else {
     //    if (digitalRead(STOP_PIN) == LOW) {
