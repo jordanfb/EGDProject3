@@ -89,6 +89,9 @@ public class RecieveIAm : RecieveCommand
             //}
 
         }
+        else {
+            GameManagerScript.instance.pingLEDArduino();
+        }
 
 
 
@@ -552,6 +555,69 @@ public class ReadError : RecieveCommand
         {
             case state.debug:
                 debugMessage += (char)b;
+                break;
+            case state.end:
+                break;
+            default:
+                break;
+        }
+
+    }
+
+
+}
+
+
+public class RecievePongFromLEDArduino : RecieveCommand
+{
+
+    public void readNextByte(byte b)
+    {
+        
+    }
+
+    public void executePopulatedMessage()
+    {
+        // already handled in the readnextbyte function
+        GameManagerScript.instance.isPinging = false;
+        Debug.Log("this in the ping from the hub to the LED: " + GameManagerScript.instance.pingTimer / 2f);
+        GameManagerScript.instance.pingTime = GameManagerScript.instance.pingTimer / 2f;
+    }
+}
+
+public class RecieveTrainPing : RecieveCommand
+{
+    public int trainID;
+
+    private enum state
+    {
+        trainID,
+        end
+    }
+    state currentState = state.trainID;
+    public void executePopulatedMessage()
+    {
+
+        //I need to see what radians the train id is at ping time seconds ago
+        //if it is not directly in front of the sender's station, as the message suggested
+        //that it be, I need to move it there
+
+        float radiansBehind = GameManagerScript.instance.pingTime * (Mathf.PI * 2 / GameManagerScript.instance.timeForRotation);
+
+        float posAtPingTime = GameManagerScript.instance.trainDictionary[trainID].radians - radiansBehind;
+        int sender = GameManagerScript.instance.trainDictionary[trainID].sender;
+        float radianDifference = posAtPingTime - GameManagerScript.instance.playerInfoDictionary[sender].radians;
+        GameManagerScript.instance.trainDictionary[trainID].radians += radianDifference;
+
+    }
+
+    public void readNextByte(byte b)
+    {
+
+        switch (currentState)
+        {
+            case state.trainID:
+                trainID += (char)b;
                 break;
             case state.end:
                 break;
