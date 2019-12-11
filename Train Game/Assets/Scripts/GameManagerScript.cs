@@ -256,9 +256,9 @@ public class GameManagerScript : MonoBehaviour
             p.Close();
             Debug.Log("Closed serial port: " + p.PortName);
         }
-        foreach (int id in trainDictionary.Keys) {
-            SenderHelper.instance.DestroyTrainLights(id);
-        }
+        //foreach (int id in trainDictionary.Keys) {
+        //    SenderHelper.instance.DestroyTrainLights(id);
+        //}
         portsWeveOpened = new List<SerialPort>();
 
     }
