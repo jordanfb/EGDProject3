@@ -64,7 +64,7 @@ public class GameManagerScript : MonoBehaviour
     public float timeInVotingPhase = 10f;
     public float currentTime;
     public bool gamePaused = false;
-
+    public float pingTime = 0;
     public List<string> keywords = new List<string>();
     public List<string> codewords = new List<string>();
 
@@ -503,6 +503,16 @@ public class GameManagerScript : MonoBehaviour
                                 currentCommand = new ReadError();
                                 ((ReadError)currentCommand).whoAmI = sp.PortName;
                                 break;
+                            case 'z':
+                                //Debug.Log("setting new command to DEBUG");
+                                Debug.Log("setting new command to RECIEVE PONG");
+                                currentCommand = new RecievePongFromLEDArduino();
+                                break;
+                            case 'A':
+                                Debug.Log("setting new command to RECIEVE TRAIN PING");
+                                //Debug.Log("setting new command to DEBUG");
+                                currentCommand = new RecieveTrainPing();
+                                break;
                             default:
                                 Debug.LogError("Unable to figure out command sent to me: " + incomingByte + " " + (char)incomingByte);
                                 break;
@@ -579,14 +589,18 @@ public class GameManagerScript : MonoBehaviour
             GameObject.Find("circle").GetComponent<SpriteRenderer>().color = Color.black;
             sentVoteTimeStart = false;
             votingPhase = false;
-            SenderHelper.instance.sendToggleVotingPhase(1);
         }
 
         timeAtEnd = timeLeftInRound;
         if (currentTime <= 0) {
             Debug.Log("game over");
             //just restarts the game once it ends.
-            SendNewGameAll();
+            //SendNewGameAll();
+            gameStarted = false;
+            sentVoteTimeStart = false;
+            votingPhase = false;
+            SenderHelper.instance.sendToggleVotingPhase(1);
+            GameObject.Find("circle").GetComponent<SpriteRenderer>().color = Color.black;
             currentTime = timePerRound * roundsPerGame;
         }
 
@@ -797,11 +811,24 @@ public class GameManagerScript : MonoBehaviour
         portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
     }
 
+    public float pingTimer = 0;
+    public bool isPinging = false;
+    public void pingLEDArduino() {
+        isPinging = true;
+        pingTimer = 0;
+        SenderHelper.instance.pingLEDArduinoForLatency();
+    }
+
+
     void Update()
     {
         if (isSyncing)
         {
             resyncTimer += Time.deltaTime;
+        }
+        if (isPinging)
+        {
+            pingTimer += Time.deltaTime;
         }
         if (Input.GetKeyDown(KeyCode.V)) {
             generateRandomVote();
