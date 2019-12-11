@@ -605,9 +605,13 @@ public class RecieveTrainPing : RecieveCommand
 
         float radiansBehind = GameManagerScript.instance.pingTime * (Mathf.PI * 2 / GameManagerScript.instance.timeForRotation);
 
-        float posAtPingTime = GameManagerScript.instance.trainDictionary[trainID].radians - radiansBehind;
+        //float posAtPingTime = GameManagerScript.instance.trainDictionary[trainID].radians - radiansBehind;
+        //if (posAtPingTime < 0) {
+        //    posAtPingTime += Mathf.PI * 2;
+        //}
         int sender = GameManagerScript.instance.trainDictionary[trainID].sender;
-        float radianDifference = posAtPingTime - GameManagerScript.instance.playerInfoDictionary[sender].radians;
+        float radianDifference = radiansBehind + GameManagerScript.instance.playerInfoDictionary[sender].radians;
+        Debug.Log("DIFFERENCE BETWEEN UNITY AND LED STRIP IN RADIANS: " + radianDifference);
         GameManagerScript.instance.trainDictionary[trainID].radians += radianDifference;
 
     }
@@ -618,7 +622,7 @@ public class RecieveTrainPing : RecieveCommand
         switch (currentState)
         {
             case state.trainID:
-                trainID += (char)b;
+                trainID += b;
                 break;
             case state.end:
                 break;
