@@ -133,7 +133,7 @@ public class GameManagerScript : MonoBehaviour
 
         trainDictionary.Clear();
         visualTrainDictionary.Clear();
-        SetSpeedBasedOnResync();
+        
         //votingDictionary.Clear();
 
     }
@@ -256,8 +256,15 @@ public class GameManagerScript : MonoBehaviour
             p.Close();
             Debug.Log("Closed serial port: " + p.PortName);
         }
-        foreach (int id in trainDictionary.Keys) {
-            SenderHelper.instance.DestroyTrainLights(id);
+        foreach (int trainID in trainDictionary.Keys) {
+            byte[] message = { (byte)'f', (byte)trainID, 0 };
+
+            
+            if (portDictionary.ContainsKey(6) && portDictionary[6].IsOpen)
+            {
+                portDictionary[6].Write(message, 0, (char)message.Length);
+
+            }
         }
         portsWeveOpened = new List<SerialPort>();
 
