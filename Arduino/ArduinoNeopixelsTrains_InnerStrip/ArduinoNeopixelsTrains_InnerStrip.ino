@@ -18,7 +18,7 @@
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER, PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER + 59, INNER_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER + 70, INNER_PIN, NEO_GRB + NEO_KHZ800);
 
 // variables
 int delayTime = 20; // LEDS * delayTime / 1000 = seconds
@@ -36,6 +36,7 @@ int votingBlinkLoops = 0;
 bool votingBlink = false;
 bool startVoteBlinking = false;
 int voteBlinkSpeed = 4; // smaller = faster, number corresponds to how many loops in between flashing
+int loopsUntilResync = 3;
 
 // Player colors, color number corresponds to player number, feel free to change these color values here
 uint32_t color1 = outerStrip.Color(255, 0, 0);
@@ -63,7 +64,7 @@ uint32_t tailColors[5 * TRAINS_PER_PLAYER];
 bool startTest = true;
 
 // variables for receiving information from Hub
-byte buffer_[5];
+byte buffer_[10];
 bool messageReady = false;
 int currentByte = 0;
 
@@ -119,7 +120,7 @@ void loop() {
         currentLoops[i]++;
       }
 
-      if(currentLoops[i] == 5) {
+      if(currentLoops[i] == loopsUntilResync) {
         currentLoops[i] = 0;
         Serial.write('A');
         Serial.write((byte)trainsID[i]);
@@ -463,8 +464,8 @@ void Vote(byte senderID, byte vote1, byte vote2) {
 }
 
 void GenerateVoteColors(int player, uint32_t v1, uint32_t v2) {
-  innerStrip.setPixelColor(100 + (player * 12), v1);
-  innerStrip.setPixelColor(101 + (player * 12), v2);
+  innerStrip.setPixelColor(99 + (player * 12), v1);
+  innerStrip.setPixelColor(100 + (player * 12), v2);
 }
 
 // helper function to turn a trainID into its corresponding index value
