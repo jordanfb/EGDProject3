@@ -61,6 +61,7 @@ public class GameManagerScript : MonoBehaviour
     public bool gameStarted = false;
     public float timePerRound = 90f;
     public float roundsPerGame = 4f;
+    public float timeInVotingPhase = 10f;
     public float currentTime;
     public bool gamePaused = false;
 
@@ -550,6 +551,7 @@ public class GameManagerScript : MonoBehaviour
     //float innerSpeed = (2 * Mathf.PI) / (1f/3.6f);
 
     bool sentVoteTimeStart = false;
+    bool votingPhase = false;
     float timeAtEnd = Mathf.Infinity;
     public void handleTime() {
         if (!gameStarted || gamePaused) {
@@ -561,18 +563,23 @@ public class GameManagerScript : MonoBehaviour
 
         timerText.text = currentTime.ToString() + " / " + timeLeftInRound.ToString();
 
-        if (timeLeftInRound <= 15f) {
+        if (timeLeftInRound <= timeInVotingPhase) {
+            votingPhase = true;
             if (!sentVoteTimeStart) {
                 StartCoroutine(flashCircle());
-                Debug.Log("last 15 seconds");
+                SenderHelper.instance.sendToggleVotingPhase(2);
+
             }
             sentVoteTimeStart = true;
             
            
         }
+        //end of voting phase
         if (timeLeftInRound > timeAtEnd) {
-            Debug.Log("reset");
+            GameObject.Find("circle").GetComponent<SpriteRenderer>().color = Color.black;
             sentVoteTimeStart = false;
+            votingPhase = false;
+            SenderHelper.instance.sendToggleVotingPhase(1);
         }
 
         timeAtEnd = timeLeftInRound;
@@ -587,15 +594,16 @@ public class GameManagerScript : MonoBehaviour
 
     IEnumerator flashCircle() {
         float alpha = 1;
-        while (true) {
-            if (alpha > 0) {
-                alpha += 0.1f;
+        float inc = 0;
+        while (votingPhase) {
+            if (alpha <= 0) {
+                inc = 0.1f;
             }
             if (alpha >= 1)
             {
-                alpha -= 0.1f;
+                inc = -0.1f;
             }
-            Debug.Log(alpha);
+            alpha += inc;
             Color tmp = GameObject.Find("circle").GetComponent<SpriteRenderer>().color;
             tmp.a = alpha;
             GameObject.Find("circle").GetComponent<SpriteRenderer>().color = tmp;
@@ -673,7 +681,6 @@ public class GameManagerScript : MonoBehaviour
         //2 townies, 2 townies, 2 spy1
         //or top 2
 
-        int maxNumVotes = -1;
         List<KeyValuePair<int, int>> culprits = new List<KeyValuePair<int, int>>();
 
         int numSpies = 0;
