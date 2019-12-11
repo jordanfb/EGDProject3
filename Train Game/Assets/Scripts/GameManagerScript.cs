@@ -64,7 +64,7 @@ public class GameManagerScript : MonoBehaviour
     public float timeInVotingPhase = 10f;
     public float currentTime;
     public bool gamePaused = false;
-
+    public float pingTime = 0;
     public List<string> keywords = new List<string>();
     public List<string> codewords = new List<string>();
 
@@ -505,7 +505,13 @@ public class GameManagerScript : MonoBehaviour
                                 break;
                             case 'z':
                                 //Debug.Log("setting new command to DEBUG");
+                                Debug.Log("setting new command to RECIEVE PONG");
                                 currentCommand = new RecievePongFromLEDArduino();
+                                break;
+                            case 'A':
+                                Debug.Log("setting new command to RECIEVE TRAIN PING");
+                                //Debug.Log("setting new command to DEBUG");
+                                currentCommand = new RecieveTrainPing();
                                 break;
                             default:
                                 Debug.LogError("Unable to figure out command sent to me: " + incomingByte + " " + (char)incomingByte);
@@ -583,7 +589,6 @@ public class GameManagerScript : MonoBehaviour
             GameObject.Find("circle").GetComponent<SpriteRenderer>().color = Color.black;
             sentVoteTimeStart = false;
             votingPhase = false;
-            SenderHelper.instance.sendToggleVotingPhase(1);
         }
 
         timeAtEnd = timeLeftInRound;
@@ -592,6 +597,10 @@ public class GameManagerScript : MonoBehaviour
             //just restarts the game once it ends.
             //SendNewGameAll();
             gameStarted = false;
+            sentVoteTimeStart = false;
+            votingPhase = false;
+            SenderHelper.instance.sendToggleVotingPhase(1);
+            GameObject.Find("circle").GetComponent<SpriteRenderer>().color = Color.black;
             currentTime = timePerRound * roundsPerGame;
         }
 
