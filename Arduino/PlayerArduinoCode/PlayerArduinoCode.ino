@@ -337,7 +337,8 @@ void SendStopTrain() {
 void HandleButtonPresses() {
   // deal with voting and stop train buttons!
   unsigned long t = millis(); //  && (t - stopTrainDebounceTime > debounceTime)
-  if (t > stopTrainAllowedTime) {
+  if (t > stopTrainAllowedTime && !isVotingPeriod) {
+    // can't stop trains if it's voting time!
     // if we eventually get lighting up the stop train button to work put it here! FIX Also, if we get this working make sure to disable the pin on new game
     digitalWrite(STOP_BUTTON_LIGHT_PIN, HIGH);
     if (digitalRead(STOP_PIN) == LOW) {
@@ -350,13 +351,6 @@ void HandleButtonPresses() {
   } else {
     digitalWrite(STOP_BUTTON_LIGHT_PIN, LOW);
   }
-  //  else {
-  //    if (digitalRead(STOP_PIN) == LOW) {
-  //      SendDebugMessage("Stop train pressed but it's not time to press it");
-  //      String debugString = "MS: " + String(stopTrainAllowedTime - t);
-  //      SendDebugMessage(debugString.c_str(), debugString.length());
-  //    }
-  //  }
 
   // now check for voting pins! Can always vote!
   // these are pulled high so if they're low they're pressed
@@ -697,7 +691,7 @@ void ReadInCodewords(int num) {
 
 void loop() {
   //  ReadCharFromAnalogKeypad();
-  if (isInitializedForGame) {
+  if (isInitializedForGame && !isVotingPeriod) {
     if (answeringTrain) {
       // then make them answer the traiiin!
       // if they press 4 or 6 then choose left or right!
@@ -852,6 +846,10 @@ void loop() {
       // if we're playing the game then
       HandleButtonPresses();
     }
+  }
+  if (isVotingPeriod) {
+    // make sure to actually read for voting:
+    HandleButtonPresses();
   }
 
   if (Serial.available()) {
