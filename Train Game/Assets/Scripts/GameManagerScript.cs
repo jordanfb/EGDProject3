@@ -503,6 +503,10 @@ public class GameManagerScript : MonoBehaviour
                                 currentCommand = new ReadError();
                                 ((ReadError)currentCommand).whoAmI = sp.PortName;
                                 break;
+                            case 'z':
+                                //Debug.Log("setting new command to DEBUG");
+                                currentCommand = new RecievePongFromLEDArduino();
+                                break;
                             default:
                                 Debug.LogError("Unable to figure out command sent to me: " + incomingByte + " " + (char)incomingByte);
                                 break;
@@ -797,11 +801,23 @@ public class GameManagerScript : MonoBehaviour
         portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
     }
 
+    public float pingTimer = 0;
+    public bool isPinging = false;
+    public void pingLEDArduino() {
+        isPinging = true;
+        pingTimer = 0;
+    }
+
+
     void Update()
     {
         if (isSyncing)
         {
             resyncTimer += Time.deltaTime;
+        }
+        if (isPinging)
+        {
+            pingTimer += Time.deltaTime;
         }
         if (Input.GetKeyDown(KeyCode.V)) {
             generateRandomVote();

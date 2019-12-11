@@ -89,6 +89,9 @@ public class RecieveIAm : RecieveCommand
             //}
 
         }
+        else {
+            GameManagerScript.instance.pingLEDArduino();
+        }
 
 
 
@@ -559,5 +562,24 @@ public class ReadError : RecieveCommand
                 break;
         }
 
+    }
+
+
+}
+
+
+public class RecievePongFromLEDArduino : RecieveCommand
+{
+
+    public void readNextByte(byte b)
+    {
+        
+    }
+
+    public void executePopulatedMessage()
+    {
+        // already handled in the readnextbyte function
+        GameManagerScript.instance.isPinging = false;
+        Debug.Log("this in the ping from the hub to the LED: " + GameManagerScript.instance.pingTimer / 2f);
     }
 }
