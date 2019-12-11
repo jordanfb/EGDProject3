@@ -17,8 +17,8 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER + 20, PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER, INNER_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel outerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_OUTER, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel innerStrip = Adafruit_NeoPixel(NUMBER_OF_PINS_INNER + 59, INNER_PIN, NEO_GRB + NEO_KHZ800);
 
 // variables
 int delayTime = 20; // LEDS * delayTime / 1000 = seconds
@@ -26,10 +26,16 @@ int nodesPerSector = NUMBER_OF_PINS_OUTER / 5;
 int nodesPerInnerSector = NUMBER_OF_PINS_INNER / 5;
 int trainStation = 0;
 int innerStation = 1;
+
 unsigned long timeHolder = 0;
 int clockTick = 750;
 int currentClockPins = 59;
+
 int loopCount = 0;
+int votingBlinkLoops = 0;
+bool votingBlink = false;
+bool startVoteBlinking = false;
+int voteBlinkSpeed = 4; // smaller = faster, number corresponds to how many loops in between flashing
 
 // Player colors, color number corresponds to player number, feel free to change these color values here
 uint32_t color1 = outerStrip.Color(255, 0, 0);
@@ -39,6 +45,7 @@ uint32_t color4 = outerStrip.Color(255, 0, 255);
 uint32_t color5 = outerStrip.Color(255, 255, 0);
 uint32_t baseColor = outerStrip.Color(25, 25, 25);
 uint32_t blankColor = outerStrip.Color(0, 0, 0);
+uint32_t voteBlinkColor = outerStrip.Color(183, 28, 28);
 uint32_t allColors[] = {color1, color2, color3, color4, color5, blankColor};
 int tester = 1;
 
@@ -48,6 +55,8 @@ int trainsID[5 * TRAINS_PER_PLAYER];
 int trainsStopped[5 * TRAINS_PER_PLAYER];
 int answeredTrains[5 * TRAINS_PER_PLAYER];
 int location[5 * TRAINS_PER_PLAYER];
+int homeLocation[5 * TRAINS_PER_PLAYER];
+int currentLoops[5 * TRAINS_PER_PLAYER];
 uint32_t headColors[5 * TRAINS_PER_PLAYER];
 uint32_t tailColors[5 * TRAINS_PER_PLAYER];
 
@@ -94,19 +103,28 @@ void loop() {
       if (location[i] >= NUMBER_OF_PINS_OUTER) { location[i] %= NUMBER_OF_PINS_OUTER; }
 
       drawTrain(location[i], headColors[i], tailColors[i]); // draw the train on the strip
-//      outerStrip.show();
     } else if (trainsStopped[i] && !answeredTrains[i]) { // if train is stopped and not on answer track
       drawTrain(location[i], headColors[i], tailColors[i]); // draw the train at the stopped station
-//      outerStrip.show();
     } else if (trainsStopped[i] && answeredTrains[i]) { // if train is stopped and on answer track
       drawTrainInner(location[i], headColors[i]);
-//      innerStrip.show();
     } else if (answeredTrains[i]) {
       location[i] += 1;
       if (location[i] >= NUMBER_OF_PINS_INNER) { location[i] %= NUMBER_OF_PINS_INNER; }
       
       drawTrainInner(location[i], headColors[i]);
-//      innerStrip.show();
+    }
+
+    if(trainsID[i] != 0) {
+      if(location[i] == homeLocation[i]) {
+        currentLoops[i]++;
+      }
+
+      if(currentLoops[i] == 5) {
+        currentLoops[i] = 0;
+        Serial.write('A');
+        Serial.write((byte)trainsID[i]);
+        Serial.write('\0');
+      }
     }
   }
 
@@ -185,6 +203,13 @@ void loop() {
         Serial.write('u');
         Serial.write('\0');
         break;
+      case 'y': // turn vote blinking on/off
+        VoteBlinking(buffer_[1]);
+        break;
+      case 'z': // getting ping times
+        Serial.write('z');
+        Serial.write('\0');
+        break;
       default:
         SendDebugMessage("WTF");
         SendDebugMessage(buffer_[0]);
@@ -212,31 +237,10 @@ void loop() {
     startTest = false;
     }*/
 
-  loopCount++;
-
-  if(loopCount == 100) {
-    Serial.write('v');
-    Serial.write('\0');
+  if(startVoteBlinking) {
+    VotingBlink();
+    votingBlinkLoops++;
   }
-//  } else if(loopCount < 100) {
-//    int mod = loopCount % 5;
-//    if(mod == 0) {
-//      UpdateInnerStripColor(color1);
-//      UpdateStripColor(color2);
-//    } else if(mod == 1) {
-//      UpdateInnerStripColor(color2);
-//      UpdateStripColor(color3);
-//    } else if(mod == 2) {
-//      UpdateInnerStripColor(color3);
-//      UpdateStripColor(color4);
-//    } else if(mod == 3) {
-//      UpdateInnerStripColor(color4);
-//      UpdateStripColor(color5);
-//    } else if(mod == 4) {
-//      UpdateInnerStripColor(color5);
-//      UpdateStripColor(color1);
-//    }
-//  }
 }
 
 // function to visually draw the lights of a train
@@ -263,21 +267,18 @@ void SpawnTrain(byte sender, byte receiver, byte trainID) {
   int playerNumber = (ToInt(sender) - 1) * TRAINS_PER_PLAYER;
   int startPosition = (trainStation + (nodesPerSector * (ToInt(sender) - 1)));
   drawTrain(startPosition, fromColor, toColor);
-//  outerStrip.show();
-
-//  SendDebugMessage(sender);
-//  SendDebugMessage(receiver);
-//  SendDebugMessage(trainID);
 
   // update arrays for the new train that was just spawned
   for (int i = 0; i < TRAINS_PER_PLAYER; i++) {
     if (trainsID[playerNumber + i] == 0) {
       location[playerNumber + i] = startPosition;
+      homeLocation[playerNumber + i] = startPosition;
+      currentLoops[playerNumber + i] = 0;
       headColors[playerNumber + i] = fromColor;
       tailColors[playerNumber + i] = toColor;
       trainsStopped[playerNumber + i] = 0;
       trainsID[playerNumber + i] = ToInt(trainID);
-      SendDebugMessage("TRAIN SUCCESSFULLY SPAWNED");
+//      SendDebugMessage("TRAIN SUCCESSFULLY SPAWNED");
       break;
     }
   }
@@ -384,8 +385,6 @@ void UpdateStripColor(uint32_t color) {
   for (int i = 0; i < NUMBER_OF_PINS_OUTER; i++) {
     outerStrip.setPixelColor(i, color);
   }
-
-//  outerStrip.show();
 }
 
 // function to update the inner strip to a single color
@@ -393,8 +392,6 @@ void UpdateInnerStripColor(uint32_t color) {
   for (int i = 0; i < NUMBER_OF_PINS_INNER; i++) {
     innerStrip.setPixelColor(i, color);
   }
-
-//  innerStrip.show();
 }
 
 // function to reset a pin to the base color of the outer strip
@@ -447,6 +444,8 @@ void AnswerTrain(byte trainID) {
 //  outerStrip.show();
 
   location[trainIndex] = (nodesPerInnerSector * (playerNumber));
+  homeLocation[trainIndex] = (nodesPerInnerSector * (playerNumber));
+  currentLoops[trainIndex] = 0;
   trainsStopped[trainIndex] = 0;
   answeredTrains[trainIndex] = 1;
 }
@@ -461,23 +460,8 @@ void Vote(byte senderID, byte vote1, byte vote2) {
 }
 
 void GenerateVoteColors(int player, uint32_t v1, uint32_t v2) {
-//  uint32_t c1 = allColors[vote1];
-//  uint32_t c2 = allColors[vote2];
-//
-//  if(vote1 == 1) { c1 = color1; }
-//  else if(vote1 == 2) { c1 = color2; }
-//  else if(vote1 == 3) { c1 = color3; }
-//  else if(vote1 == 4) { c1 = color4; }
-//  else if(vote1 == 5) { c1 = color5; }
-//
-//  if(vote2 == 1) { c2 = color1; }
-//  else if(vote2 == 2) { c2 = color2; }
-//  else if(vote2 == 3) { c2 = color3; }
-//  else if(vote2 == 4) { c2 = color4; }
-//  else if(vote2 == 5) { c2 = color5; }
-
-  outerStrip.setPixelColor(110 + (player * 2), v1);
-  outerStrip.setPixelColor(111 + (player * 2), v2);
+  innerStrip.setPixelColor(100 + (player * 12), v1);
+  innerStrip.setPixelColor(101 + (player * 12), v2);
 }
 
 // helper function to turn a trainID into its corresponding index value
@@ -521,6 +505,35 @@ void SetClockLength(int len, Adafruit_NeoPixel strip) {
 // function to adjust how long the clock will take to go through
 void SetClockTime(int time_) {
   clockTick = time_;
+}
+
+// function to turn vote blinking on or off
+void VoteBlinking(byte on) {
+  int on_off = (ToInt(on) - 1);
+
+  if(!on_off) {
+    votingBlinkLoops = 0;
+    votingBlink = false;
+    UpdateStripColor(baseColor);
+    UpdateInnerStripColor(baseColor);
+  }
+  
+  startVoteBlinking = on_off;
+}
+
+// function to allow the track to blink when it is close to voting time
+void VotingBlink() {
+  if(votingBlinkLoops > voteBlinkSpeed && votingBlink) {
+    votingBlinkLoops = 0;
+    votingBlink = false;
+    UpdateStripColor(baseColor);
+    UpdateInnerStripColor(baseColor);
+  } else if(votingBlinkLoops > voteBlinkSpeed && !votingBlink) {
+    votingBlinkLoops = 0;
+    votingBlink = true;
+    UpdateStripColor(voteBlinkColor);
+    UpdateInnerStripColor(voteBlinkColor);
+  }
 }
 
 
