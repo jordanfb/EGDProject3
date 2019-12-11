@@ -51,6 +51,8 @@ int allowedTrains = 1; // for now just allowed trains is 1, we may add a way to 
 bool creatingLeftTrain = true;
 bool answeringTrain = false;
 bool isVoting = false; // debounce the voting
+bool isVotingPeriod = false;
+char votingResults[] = {6, 6, 6, 6, 6, 6};
 
 // train data!
 char trainID = 1;
@@ -92,8 +94,8 @@ char ReadCharFromAnalogKeypad() {
   //  }
   int i = 17;
   //  if (reading > 930) { // this is what it says on the back but it's too close to 2 and fluctuates
-//  Serial.print(reading);
-//  Serial.print(' ');
+  //  Serial.print(reading);
+  //  Serial.print(' ');
   if (reading > 970 + analog_read_offset) {
     i = 0;
   } else if (reading > 850 + analog_read_offset) {
@@ -128,10 +130,10 @@ char ReadCharFromAnalogKeypad() {
     i = 15;
   } else {
     // no key pressed
-//    Serial.println('\0');
+    //    Serial.println('\0');
     return '\0';
   }
-//  Serial.println(keys1[i]);
+  //  Serial.println(keys1[i]);
   return keys1[i];
 }
 
@@ -248,6 +250,7 @@ void NewGame() {
   answeringTrain = false;
   isVoting = false;
   digitalWrite(STOP_BUTTON_LIGHT_PIN, HIGH); // allowed to stop a train so turn on the light
+  isVotingPeriod = false;
 
   ResetCreatedWordsAndAnswer();
 
@@ -347,13 +350,13 @@ void HandleButtonPresses() {
   } else {
     digitalWrite(STOP_BUTTON_LIGHT_PIN, LOW);
   }
-//  else {
-    //    if (digitalRead(STOP_PIN) == LOW) {
-    //      SendDebugMessage("Stop train pressed but it's not time to press it");
-    //      String debugString = "MS: " + String(stopTrainAllowedTime - t);
-    //      SendDebugMessage(debugString.c_str(), debugString.length());
-    //    }
-//  }
+  //  else {
+  //    if (digitalRead(STOP_PIN) == LOW) {
+  //      SendDebugMessage("Stop train pressed but it's not time to press it");
+  //      String debugString = "MS: " + String(stopTrainAllowedTime - t);
+  //      SendDebugMessage(debugString.c_str(), debugString.length());
+  //    }
+  //  }
 
   // now check for voting pins! Can always vote!
   // these are pulled high so if they're low they're pressed
@@ -375,16 +378,16 @@ void HandleButtonPresses() {
     // then increment it by 1 since you can't vote for yourself!
     vote++;
   }
-//   don't send vote at the moment because we don't have buttons hooked up there
-    if (vote > 0) {
-      if (isVoting == false) {
-        // then you voted this frame! Send the vote!
-        SendVote(vote);
-        isVoting = true; // debounce voting
-      }
-    } else {
-      isVoting = false; // debounce voting
+  //   don't send vote at the moment because we don't have buttons hooked up there
+  if (vote > 0) {
+    if (isVoting == false) {
+      // then you voted this frame! Send the vote!
+      SendVote(vote);
+      isVoting = true; // debounce voting
     }
+  } else {
+    isVoting = false; // debounce voting
+  }
 }
 
 void HandleIncomingSerial() {
@@ -469,19 +472,96 @@ void HandleIncomingSerial() {
 
       isTownsperson = false;
       isInitializedForGame = true;
-//      Serial.write('s');
-//      for (int i = 0; i < numCodewords; i++) {
-//        int c = 0;
-//        while (codewords[i][c] != '\0') {
-//          Serial.write(codewords[i][c]);
-//          c++;
-//        }
-//      }
-//      Serial.write('\n');
-//      Serial.write('\0');
+      //      Serial.write('s');
+      //      for (int i = 0; i < numCodewords; i++) {
+      //        int c = 0;
+      //        while (codewords[i][c] != '\0') {
+      //          Serial.write(codewords[i][c]);
+      //          c++;
+      //        }
+      //      }
+      //      Serial.write('\n');
+      //      Serial.write('\0');
       DisplayCodewords();
       SendDebugMessage("Got spy keywords");
       break;
+    case 'x':
+      // voting results are in, display them to the players!
+      while (!Serial.available());
+      votingResults[0] = Serial.read();
+      while (!Serial.available());
+      votingResults[1] = Serial.read();
+      while (!Serial.available());
+      votingResults[2] = Serial.read();
+      while (!Serial.available());
+      votingResults[3] = Serial.read();
+      while (!Serial.available());
+      votingResults[4] = Serial.read();
+      while (!Serial.available());
+      byte result = Serial.read();
+      while (!Serial.available());
+      Serial.read(); // null character
+
+      // now display the voting results:
+      printer.println("The votes are in:");
+      switch (result) {
+        case 1:
+          // townsfolk win!
+          printer.println("The townsfolk found the spies:");
+          break;
+        case 2:
+          printer.println("Some of these players are spies:");
+          break;
+        case 3:
+          printer.println("The townsfolk voted out only townspeople and lost:");
+          break;
+      }
+      for (int i = 0; i < 5; i++) {
+        // display who was voted for
+        if (votingResults[i] != 6) {
+          // print it!
+          printer.println(playerIDToStringName[votingResults[i]]);
+        }
+      }
+      switch (result) {
+        case 1:
+          // townsfolk win!
+          if (isTownsperson) {
+            printer.println("You are a townsperson, you WON!");
+          } else {
+            printer.println("You are a spy, you LOST!");
+          }
+          break;
+        case 2:
+          if (isTownsperson) {
+            printer.println("Narrow down the spies to win!");
+          } else {
+            printer.println("Watch out, they're closing in!");
+          }
+          break;
+        case 3:
+          if (isTownsperson) {
+            printer.println("You are a townsperson, you LOST!");
+          } else {
+            printer.println("You are a spy, you WON!");
+          }
+          break;
+      }
+      break;
+    case 'y':
+      // entering or exiting voting only mode!
+      while (!Serial.available());
+      // wait for whether it's on or off!
+      byte c = Serial.read();
+      isVotingPeriod = (c == 2);
+      while (!Serial.available());
+      Serial.read(); // null character
+    case 'z':
+      // ping
+      while (!Serial.available());
+      Serial.read(); // clear the null character
+      Serial.write('z');
+      Serial.write('\0');
     default:
       SendDebugMessage("Got message I couldn't read");
       SendDebugMessage(&messageType, 1);
@@ -616,7 +696,7 @@ void ReadInCodewords(int num) {
 }
 
 void loop() {
-//  ReadCharFromAnalogKeypad();
+  //  ReadCharFromAnalogKeypad();
   if (isInitializedForGame) {
     if (answeringTrain) {
       // then make them answer the traiiin!
@@ -652,8 +732,8 @@ void loop() {
         //        Serial.println(key); // don't do that that will fuck up the game code
         if (key == '1') {
           // print a help message for now
-//          printer.println("HELP INFO:");
-//          printer.println("None LOL, DEBUG FIX");
+          //          printer.println("HELP INFO:");
+          //          printer.println("None LOL, DEBUG FIX");
 
           // for now, DEBUG FIX, this is equivalent to stopping trains
           unsigned long t = millis(); //  && (t - stopTrainDebounceTime > debounceTime)

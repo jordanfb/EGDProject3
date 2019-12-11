@@ -199,14 +199,17 @@ void loop() {
         ResetGame();
         break;
       case 't': // resync timer
+        SendDebugMessage("RESYNC:\n");
         loopCount = 0;
         Serial.write('u');
         Serial.write('\0');
         break;
       case 'y': // turn vote blinking on/off
+        SendDebugMessage("VOTE BLINKING:\n");
         VoteBlinking(buffer_[1]);
         break;
       case 'z': // getting ping times
+        SendDebugMessage("PING PONG:\n");
         Serial.write('z');
         Serial.write('\0');
         break;
