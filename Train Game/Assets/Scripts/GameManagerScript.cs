@@ -138,12 +138,6 @@ public class GameManagerScript : MonoBehaviour
 
     }
 
-        trainDictionary.Clear();
-        visualTrainDictionary.Clear();
-        //votingDictionary.Clear();
-
-    }
-
     public void assignRoles() {
         if (playerInfoDictionary.Count == 0 || playerInfoDictionary.Count == 1) {
             return;
