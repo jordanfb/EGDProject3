@@ -309,6 +309,16 @@ public class SenderHelper : MonoBehaviour
         }
     }
 
+    public void sendToggleVotingPhase(byte isVoting) {
+        byte[] message = { (byte)'y', isVoting, 0};
+        Debug.Log("setting toggle voting phase to: " + isVoting);
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen)
+        {
+            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+
+        }
+    }
+
     public void NewGame()
     {
 
