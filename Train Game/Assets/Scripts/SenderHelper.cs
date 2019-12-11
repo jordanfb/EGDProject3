@@ -220,7 +220,7 @@ public class SenderHelper : MonoBehaviour
                 );
 
 
-        List<byte> command = new List<byte> { (byte)'h', getNumberAsByte(trainID), getNumberAsByte(senderID), getNumberAsByte(recieverID) };
+        List<byte> command = new List<byte> { (byte)'h', (byte)trainID, getNumberAsByte(senderID), getNumberAsByte(recieverID) };
         foreach (char c in optionA)
         {
             command.Add((byte)c);

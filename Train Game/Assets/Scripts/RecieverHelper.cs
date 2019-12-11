@@ -604,20 +604,23 @@ public class RecieveTrainPing : RecieveCommand
         //if it is not directly in front of the sender's station, as the message suggested
         //that it be, I need to move it there
 
-        float radiansBehind = GameManagerScript.instance.pingTime * (Mathf.PI * 2 / GameManagerScript.instance.timeForRotation);
-        Debug.Log("radians behind: " + radiansBehind);
+        float radiansInOnePing = GameManagerScript.instance.pingTime * (Mathf.PI * 2 / GameManagerScript.instance.timeForRotation);
+        Debug.Log("RADIANS IN ONE PING: " + radiansInOnePing);
         //float posAtPingTime = GameManagerScript.instance.trainDictionary[trainID].radians - radiansBehind;
         //if (posAtPingTime < 0) {
         //    posAtPingTime += Mathf.PI * 2;
         //}
-        Debug.Log("train ID: " + trainID);
+        
         if (!GameManagerScript.instance.trainDictionary.ContainsKey(trainID)) {
+            Debug.Log("train ID:\n " + trainID + " is not in the dictionary");
             return;
         }
+        Debug.Log("train ID:\n " + trainID + " is in the dictionary");
+
         int sender = GameManagerScript.instance.trainDictionary[trainID].sender;
-        float radianDifference = GameManagerScript.instance.playerInfoDictionary[sender].radians;
-        Debug.Log("DIFFERENCE BETWEEN UNITY AND LED STRIP IN RADIANS: " + radianDifference);
-        float newRadians = (radianDifference - radiansBehind) % (Mathf.PI * 2);
+        float senderRadians = GameManagerScript.instance.playerInfoDictionary[sender].radians;
+        Debug.Log("SENDER RADIANS: " + senderRadians);
+        float newRadians = (senderRadians + radiansInOnePing) % (Mathf.PI * 2);
         GameManagerScript.instance.trainDictionary[trainID].radians = newRadians;
 
     }

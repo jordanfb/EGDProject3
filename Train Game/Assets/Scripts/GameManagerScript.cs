@@ -44,6 +44,7 @@ public class GameManagerScript : MonoBehaviour
     public Sprite trainTailSprite;
     public Color[] COLORS = { Color.red, Color.blue, Color.green, Color.magenta, Color.yellow };
     public TMP_Text timerText;
+    public TMP_Text trainDictionaryText;
     //dictionary of int to the port that it controls
     //1-5 are players
     //6 is the lights
@@ -859,9 +860,13 @@ public class GameManagerScript : MonoBehaviour
         {
             return;
         }
+        string trainDictionaryString = "trains: ";
         //maybe put this in a coroutine
         foreach (int trainID in trainDictionary.Keys) {
-            //the train is repositioned in the 
+            //the train is repositioned in the
+            trainDictionaryString += (trainID +"(" +
+                trainDictionary[trainID].sender + "->" +
+                trainDictionary[trainID].reciever + ")\n");
             if (!trainDictionary[trainID].isPaused)
             {
                 if (trainDictionary[trainID].isOnAnswerStrip)
@@ -907,6 +912,8 @@ public class GameManagerScript : MonoBehaviour
 
 
         }
+
+        trainDictionaryText.text = trainDictionaryString;
 
     }
 
