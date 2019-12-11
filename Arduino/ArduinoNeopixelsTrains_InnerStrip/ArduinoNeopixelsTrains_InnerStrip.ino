@@ -30,6 +30,8 @@ unsigned long timeHolder = 0;
 int clockTick = 750;
 int currentClockPins = 59;
 int loopCount = 0;
+int votingBlinkLoops = 0;
+bool votingBlink = false;
 
 // Player colors, color number corresponds to player number, feel free to change these color values here
 uint32_t color1 = outerStrip.Color(255, 0, 0);
@@ -39,6 +41,7 @@ uint32_t color4 = outerStrip.Color(255, 0, 255);
 uint32_t color5 = outerStrip.Color(255, 255, 0);
 uint32_t baseColor = outerStrip.Color(25, 25, 25);
 uint32_t blankColor = outerStrip.Color(0, 0, 0);
+uint32_t voteBlinkColor = outerStrip.Color(183, 28, 28);
 uint32_t allColors[] = {color1, color2, color3, color4, color5, blankColor};
 int tester = 1;
 
@@ -57,6 +60,8 @@ bool startTest = true;
 byte buffer_[5];
 bool messageReady = false;
 int currentByte = 0;
+
+int testingVoteBlink = 0;
 
 void setup() {
   // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
@@ -237,6 +242,13 @@ void loop() {
 //      UpdateStripColor(color1);
 //    }
 //  }
+
+  testingVoteBlink++;
+
+  if(testingVoteBlink > 40) {
+    VotingBlink();
+    votingBlinkLoops++;
+  }
 }
 
 // function to visually draw the lights of a train
@@ -521,6 +533,21 @@ void SetClockLength(int len, Adafruit_NeoPixel strip) {
 // function to adjust how long the clock will take to go through
 void SetClockTime(int time_) {
   clockTick = time_;
+}
+
+// function to allow the track to blink when it is close to voting time
+void VotingBlink() {
+  if(votingBlinkLoops > 5 && votingBlink) {
+    votingBlinkLoops = 0;
+    votingBlink = false;
+    UpdateStripColor(baseColor);
+    UpdateInnerStripColor(baseColor);
+  } else if(votingBlinkLoops > 5 && !votingBlink) {
+    votingBlinkLoops = 0;
+    votingBlink = true;
+    UpdateStripColor(voteBlinkColor);
+    UpdateInnerStripColor(voteBlinkColor);
+  }
 }
 
 
