@@ -622,7 +622,7 @@ public class RecieveTrainPing : RecieveCommand
         switch (currentState)
         {
             case state.trainID:
-                trainID += (char)b;
+                trainID += b;
                 break;
             case state.end:
                 break;
