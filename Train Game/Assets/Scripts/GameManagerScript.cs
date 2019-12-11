@@ -590,7 +590,8 @@ public class GameManagerScript : MonoBehaviour
         if (currentTime <= 0) {
             Debug.Log("game over");
             //just restarts the game once it ends.
-            SendNewGameAll();
+            //SendNewGameAll();
+            gameStarted = false;
             currentTime = timePerRound * roundsPerGame;
         }
 
