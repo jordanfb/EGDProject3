@@ -8,7 +8,7 @@ const int STOP_BUTTON_LIGHT_PIN = 12;
 #define STOP_PIN 11
 #define VOTE_PINS 2 // starts from this pin and goes up 4. i.e. 2, 3, 4, 5 // shouldn't use pin 13 though because that has the blink LED there though
 const unsigned long TIME_BETWEEN_PRESSES = 2000;
-const char ARDUINO_ID = 1; // 1 to 6
+const char ARDUINO_ID = 5; // 1 to 5
 const String playerIDToStringName[] = {"", "Red", "Blue", "Green", "Purple", "Yellow"}; // no player 0, because that's the null terminating character so we don't send that if we can avoid it
 
 
@@ -877,7 +877,6 @@ void loop() {
       }
 
       if (key != NO_KEY) {
-        printer.print(key);
         //        Serial.println(key); // don't do that that will fuck up the game code
         if (key == '1') {
           // print a help message for now
