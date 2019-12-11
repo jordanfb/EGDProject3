@@ -70,6 +70,8 @@ unsigned long stopTrainAllowedTime = 0;
 char incomingSerialBuffer[65 * 3 + 9]; // big enough for three question words and the associated bytes needed for that
 int incomingSerialOffset = 0;
 
+char edgeDetectionKeypadLastPress = '\0';
+
 void setup() {
   Serial.begin(9600);
 
@@ -134,10 +136,18 @@ char ReadCharFromAnalogKeypad() {
   } else {
     // no key pressed
     //    Serial.println('\0');
+    edgeDetectionKeypadLastPress = '\0';
     return '\0';
   }
   //  Serial.println(keys1[i]);
-  return keys1[i];
+  if (keys1[i] != edgeDetectionKeypadLastPress) {
+    // then it's a new key! So it works!
+    edgeDetectionKeypadLastPress = keys1[i];
+    return keys1[i];
+  } else {
+    // it's the same key so let's not edge detect!
+    return '\0'; // debounce!
+  }
 }
 
 void AddCharacterToTrain(char c) {
@@ -867,6 +877,7 @@ void loop() {
       }
 
       if (key != NO_KEY) {
+        printer.print(key);
         //        Serial.println(key); // don't do that that will fuck up the game code
         if (key == '1') {
           // print a help message for now
