@@ -613,7 +613,7 @@ public class RecieveTrainPing : RecieveCommand
         int sender = GameManagerScript.instance.trainDictionary[trainID].sender;
         float radianDifference = GameManagerScript.instance.playerInfoDictionary[sender].radians;
         Debug.Log("DIFFERENCE BETWEEN UNITY AND LED STRIP IN RADIANS: " + radianDifference);
-        GameManagerScript.instance.trainDictionary[trainID].radians = radianDifference;
+        GameManagerScript.instance.trainDictionary[trainID].radians = radianDifference + radiansBehind;
 
     }
 
