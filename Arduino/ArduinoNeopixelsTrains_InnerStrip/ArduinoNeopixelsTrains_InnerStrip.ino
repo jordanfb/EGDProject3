@@ -452,8 +452,24 @@ void AnswerTrain(byte trainID) {
   ResetPin(location[trainIndex] + 3);
 //  outerStrip.show();
 
+  int senderID = 0;
+  if(headColors[trainIndex] == color1) {
+    senderID = 0;
+  } else if (headColors[trainIndex] == color2) {
+    senderID = 1;
+  } else if (headColors[trainIndex] == color3) {
+    senderID = 2;
+  } else if (headColors[trainIndex] == color4) {
+    senderID = 3;
+  } else if (headColors[trainIndex] == color5) {
+    senderID = 4;
+  } else {
+    SendDebugMessage("DID NOT MATCH A COLOR IN ANSWER!");
+    headColors[trainIndex] = blankColor;
+  }
+  
   location[trainIndex] = (nodesPerInnerSector * (playerNumber));
-  homeLocation[trainIndex] = (nodesPerInnerSector * (playerNumber));
+  homeLocation[trainIndex] = (innerStation + (nodesPerInnerSector * (senderID)));
   currentLoops[trainIndex] = 0;
   trainsStopped[trainIndex] = 0;
   answeredTrains[trainIndex] = 1;
