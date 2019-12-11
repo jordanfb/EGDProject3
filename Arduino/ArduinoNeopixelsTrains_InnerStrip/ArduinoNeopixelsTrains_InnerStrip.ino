@@ -245,6 +245,15 @@ void loop() {
     VotingBlink();
     votingBlinkLoops++;
   }
+
+  // loopcount for resyncing:
+  if (loopCount < 100) {
+    loopCount++;
+    if (loopCount == 100) {
+      Serial.write('v');
+      Serial.write('\0');
+    }
+  }
 }
 
 // function to visually draw the lights of a train

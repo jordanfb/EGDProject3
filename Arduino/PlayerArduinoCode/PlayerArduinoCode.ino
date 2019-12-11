@@ -8,7 +8,7 @@ const int STOP_BUTTON_LIGHT_PIN = 12;
 #define STOP_PIN 11
 #define VOTE_PINS 2 // starts from this pin and goes up 4. i.e. 2, 3, 4, 5 // shouldn't use pin 13 though because that has the blink LED there though
 const unsigned long TIME_BETWEEN_PRESSES = 2000;
-const char ARDUINO_ID = 1; // 1 to 6
+const char ARDUINO_ID = 5; // 1 to 5
 const String playerIDToStringName[] = {"", "Red", "Blue", "Green", "Purple", "Yellow"}; // no player 0, because that's the null terminating character so we don't send that if we can avoid it
 
 
@@ -69,6 +69,8 @@ unsigned long stopTrainAllowedTime = 0;
 
 char incomingSerialBuffer[65 * 3 + 9]; // big enough for three question words and the associated bytes needed for that
 int incomingSerialOffset = 0;
+
+char edgeDetectionKeypadLastPress = '\0';
 
 void setup() {
   Serial.begin(9600);
@@ -134,10 +136,18 @@ char ReadCharFromAnalogKeypad() {
   } else {
     // no key pressed
     //    Serial.println('\0');
+    edgeDetectionKeypadLastPress = '\0';
     return '\0';
   }
   //  Serial.println(keys1[i]);
-  return keys1[i];
+  if (keys1[i] != edgeDetectionKeypadLastPress) {
+    // then it's a new key! So it works!
+    edgeDetectionKeypadLastPress = keys1[i];
+    return keys1[i];
+  } else {
+    // it's the same key so let's not edge detect!
+    return '\0'; // debounce!
+  }
 }
 
 void AddCharacterToTrain(char c) {
