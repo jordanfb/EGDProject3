@@ -816,6 +816,7 @@ public class GameManagerScript : MonoBehaviour
     public void pingLEDArduino() {
         isPinging = true;
         pingTimer = 0;
+        SenderHelper.instance.pingLEDArduinoForLatency();
     }
 
 
