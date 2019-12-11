@@ -59,7 +59,8 @@ public class GameManagerScript : MonoBehaviour
     public int currentTrainID = 1;
     public float timeForRotation = 4f;
     public bool gameStarted = false;
-    public float timePerRound = 1000f;
+    public float timePerRound = 90f;
+    public float roundsPerGame = 4f;
     public float currentTime;
     public bool gamePaused = false;
 
@@ -86,7 +87,7 @@ public class GameManagerScript : MonoBehaviour
         //ex 1 and 2 are players
         keywords = new List<string> { "DeathStar" };
         codewords = new List<string> { "Space", "Sphere", "Wow" };
-        currentTime = timePerRound;
+        currentTime = timePerRound*roundsPerGame;
         TryAttachingToAllPorts();
 
     }
@@ -548,12 +549,33 @@ public class GameManagerScript : MonoBehaviour
 
     //float innerSpeed = (2 * Mathf.PI) / (1f/3.6f);
 
+    bool sentVoteTimeStart = false;
+    float timeAtEnd = Mathf.Infinity;
     public void handleTime() {
-        timerText.text = currentTime.ToString();
         if (!gameStarted || gamePaused) {
             return;
         }
         currentTime -= Time.deltaTime;
+
+        float timeLeftInRound = currentTime % timePerRound;
+
+        timerText.text = currentTime.ToString() + " / " + timeLeftInRound.ToString();
+
+        if (timeLeftInRound <= 15f) {
+            if (!sentVoteTimeStart) {
+                StartCoroutine(flashCircle());
+                Debug.Log("last 15 seconds");
+            }
+            sentVoteTimeStart = true;
+            
+           
+        }
+        if (timeLeftInRound > timeAtEnd) {
+            Debug.Log("reset");
+            sentVoteTimeStart = false;
+        }
+
+        timeAtEnd = timeLeftInRound;
         if (currentTime <= 0) {
             Debug.Log("game over");
             //just restarts the game once it ends.
@@ -561,6 +583,24 @@ public class GameManagerScript : MonoBehaviour
             currentTime = timePerRound;
         }
 
+    }
+
+    IEnumerator flashCircle() {
+        float alpha = 1;
+        while (true) {
+            if (alpha > 0) {
+                alpha += 0.1f;
+            }
+            if (alpha >= 1)
+            {
+                alpha -= 0.1f;
+            }
+            Debug.Log(alpha);
+            Color tmp = GameObject.Find("circle").GetComponent<SpriteRenderer>().color;
+            tmp.a = alpha;
+            GameObject.Find("circle").GetComponent<SpriteRenderer>().color = tmp;
+            yield return 0;
+        }
     }
 
 
@@ -706,7 +746,8 @@ public class GameManagerScript : MonoBehaviour
         
         if (codewords.Contains(leftText) || codewords.Contains(rightText)) {
             Debug.Log("successful codeword sent from one spy to another");
-            currentTime /= 2f;
+
+            //currentTime /= 2f;
         }
     }
 
