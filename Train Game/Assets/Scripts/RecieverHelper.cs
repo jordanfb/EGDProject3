@@ -609,10 +609,11 @@ public class RecieveTrainPing : RecieveCommand
         //if (posAtPingTime < 0) {
         //    posAtPingTime += Mathf.PI * 2;
         //}
+        Debug.Log("train ID: " + trainID);
         int sender = GameManagerScript.instance.trainDictionary[trainID].sender;
-        float radianDifference = radiansBehind + GameManagerScript.instance.playerInfoDictionary[sender].radians;
+        float radianDifference = GameManagerScript.instance.playerInfoDictionary[sender].radians;
         Debug.Log("DIFFERENCE BETWEEN UNITY AND LED STRIP IN RADIANS: " + radianDifference);
-        GameManagerScript.instance.trainDictionary[trainID].radians += radianDifference;
+        GameManagerScript.instance.trainDictionary[trainID].radians = radianDifference;
 
     }
 

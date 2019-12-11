@@ -924,11 +924,12 @@ MonoBehaviour:
   currentTrainID: 1
   timeForRotation: 2
   gameStarted: 0
-  timePerRound: 6
-  roundsPerGame: 4
-  timeInVotingPhase: 15
+  timePerRound: 1000
+  roundsPerGame: 3
+  timeInVotingPhase: 10
   currentTime: 0
   gamePaused: 0
+  pingTime: 0
   keywords:
   - Codewords
   - Sent
@@ -2896,7 +2897,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0.9224054, y: 1}
-  m_AnchoredPosition: {x: -0.000011701581, y: 0.0000031090442}
+  m_AnchoredPosition: {x: 0.0000038497046, y: 0.0000031090442}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.0000000031882408, y: 1}
 --- !u!114 &1172947434
