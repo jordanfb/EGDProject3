@@ -586,6 +586,7 @@ public class GameManagerScript : MonoBehaviour
         }
         //end of voting phase
         if (timeLeftInRound > timeAtEnd) {
+            parseVotes();
             GameObject.Find("circle").GetComponent<SpriteRenderer>().color = Color.black;
             sentVoteTimeStart = false;
             votingPhase = false;
@@ -723,6 +724,9 @@ public class GameManagerScript : MonoBehaviour
             }
             foreach (int i in portDictionary.Keys)
             {
+                if (i == 6) {
+                    continue;
+                }
                 SenderHelper.instance.SendParsedVotePlayers(i, peopleVotedForByTownies.ToArray(), state);
 
             }
@@ -738,6 +742,10 @@ public class GameManagerScript : MonoBehaviour
             }
             foreach (int i in portDictionary.Keys)
             {
+                if (i == 6)
+                {
+                    continue;
+                }
                 SenderHelper.instance.SendParsedVotePlayers(i, peopleVotedForByTownies.ToArray(), state);
 
             }
@@ -750,6 +758,10 @@ public class GameManagerScript : MonoBehaviour
             }
             foreach (int i in portDictionary.Keys)
             {
+                if (i == 6)
+                {
+                    continue;
+                }
                 SenderHelper.instance.SendParsedVotePlayers(i, roundVoteDictionary.Keys.ToArray(), state);
 
             }
