@@ -319,6 +319,15 @@ public class SenderHelper : MonoBehaviour
         }
     }
 
+    public void pingLEDArduinoForLatency() {
+        byte[] message = { (byte)'z', 0 };
+        if (GameManagerScript.instance.portDictionary.ContainsKey(6) && GameManagerScript.instance.portDictionary[6].IsOpen)
+        {
+            GameManagerScript.instance.portDictionary[6].Write(message, 0, (char)message.Length);
+
+        }
+    }
+
     public void NewGame()
     {
 
