@@ -154,6 +154,7 @@ void loop() {
 
 // check if a full serial message has been sent and is ready to call a function
   if (messageReady) {
+    SendDebugMessage("Message ready");
     switch (buffer_[0]) {
       case (byte)'a': // "Who are you?" case
         SendDebugMessage("WHO ARE YOU?:\n");
@@ -252,6 +253,7 @@ void loop() {
     if (loopCount == 100) {
       Serial.write('v');
       Serial.write('\0');
+      SendDebugMessage("RESYNC END SENT");
     }
   }
 }

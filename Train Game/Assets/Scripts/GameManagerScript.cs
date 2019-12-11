@@ -807,17 +807,19 @@ public class GameManagerScript : MonoBehaviour
     public void SetSpeedBasedOnResync()
     {
         // MUST HAVE 100 LIGHTS IN THE OUTER RING
+        Debug.Log("Set speed based on resync called");
         if (resyncTimer > 0)
         {
             //                  20                      // amount over the correct time
             // currentLightDelay
-            //char speed = (char)(currentLightDelay - ((resyncTimer - timeForRotation) * 10));
-            //Debug.Log("Set timer to be " + (int)speed);
-            //currentLightDelay = speed;
-            //char[] bytesToWrite = { 'i', speed, '\0' };
-            //portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
+            char speed = (char)(currentLightDelay - ((resyncTimer - timeForRotation) * 10));
+            Debug.Log("Set timer to be " + (int)speed);
+            currentLightDelay = speed;
+            char[] bytesToWrite = { 'i', speed, '\0' };
+            portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
 
-            timeForRotation = resyncTimer;
+            //timeForRotation = resyncTimer;
+            Debug.Log("Sending Succeeded in setting timer speed");
         }
     }
 
@@ -825,6 +827,7 @@ public class GameManagerScript : MonoBehaviour
     {
         char[] bytesToWrite = { 't', '\0' };
         portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
+        Debug.Log("Sending resync message");
     }
 
     public float pingTimer = 0;

@@ -616,7 +616,12 @@ public class RecieveTrainPing : RecieveCommand
         }
         Debug.Log("train ID:\n " + trainID + " is in the dictionary");
 
-        int sender = GameManagerScript.instance.trainDictionary[trainID].sender;
+        if (GameManagerScript.instance.trainDictionary[trainID].isOnAnswerStrip)
+        {
+            radiansInOnePing /= .9f;
+        }
+
+            int sender = GameManagerScript.instance.trainDictionary[trainID].sender;
         float senderRadians = GameManagerScript.instance.playerInfoDictionary[sender].radians;
         Debug.Log("SENDER RADIANS: " + senderRadians);
         float newRadians = (senderRadians + radiansInOnePing) % (Mathf.PI * 2);
