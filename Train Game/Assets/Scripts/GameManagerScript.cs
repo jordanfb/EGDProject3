@@ -811,11 +811,13 @@ public class GameManagerScript : MonoBehaviour
         {
             //                  20                      // amount over the correct time
             // currentLightDelay
-            char speed = (char)(currentLightDelay - ((resyncTimer - timeForRotation) * 10));
-            Debug.Log("Set timer to be " + (int)speed);
-            currentLightDelay = speed;
-            char[] bytesToWrite = { 'i', speed, '\0' };
-            portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
+            //char speed = (char)(currentLightDelay - ((resyncTimer - timeForRotation) * 10));
+            //Debug.Log("Set timer to be " + (int)speed);
+            //currentLightDelay = speed;
+            //char[] bytesToWrite = { 'i', speed, '\0' };
+            //portDictionary[6].Write(bytesToWrite, 0, bytesToWrite.Length);
+
+            timeForRotation = resyncTimer;
         }
     }
 

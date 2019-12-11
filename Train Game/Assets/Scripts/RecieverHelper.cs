@@ -92,7 +92,6 @@ public class RecieveIAm : RecieveCommand
         else {
 
             GameManagerScript.instance.pingLEDArduino();
-            GameManagerScript.instance.SendResync();
         }
 
 
