@@ -67,6 +67,9 @@ char questionAnswer[65]; // max 64 character long strings for everything. Probab
 
 unsigned long stopTrainAllowedTime = 0;
 
+char incomingSerialBuffer[65 * 3 + 9]; // big enough for three question words and the associated bytes needed for that
+int incomingSerialOffset = 0;
+
 void setup() {
   Serial.begin(9600);
 
@@ -384,6 +387,139 @@ void HandleButtonPresses() {
   }
 }
 
+void ExecuteFinishedSerial() {
+  char messageType = incomingSerialBuffer[0];
+  switch (messageType) {
+    case 'a':
+      // Who are you?
+      // send back our player ID with command I am ____
+      Serial.write('r');
+      Serial.write(ARDUINO_ID);
+      Serial.write('\0');
+      //      SendDebugMessage("Got who are you");
+      break;
+    case 'g':
+      // display train don't answer
+      // print it out and start a countdown to doing other things likely
+      ReadInTrainMessages(true); // this needs to be instead reading from the buffer...
+      printer.println(F("Intercepted a train:"));
+      DisplayTrain(true);
+      ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
+      SendDebugMessage("Intercepted a train don't answer");
+      break;
+    case 'h':
+      // display train you need to answer
+      // print it out and require that you choose one or the other thing!
+      trainID = incomingSerialBuffer[1]; // read the train ID
+      ReadInTrainMessages(false);
+      printer.println(F("Stopped a train to you:"));
+      DisplayTrain(false);
+      ResetCreatedWordsAndAnswer(); // so that players are able to start typing again when the train is gone
+      answeringTrain = true;
+      printer.println(F("Press 4 to choose the left option. Press 6 to choose the right option."));
+      break;
+    case 'k':
+      // new game! Reset everything!
+      NewGame();
+      break;
+    case 'x':
+      // recieved voting results FIX
+      break;
+    case 'y':
+      // entering or exiting voting only mode!
+      // whether it's on or off!
+      byte c = incomingSerialBuffer[1];
+      isVotingPeriod = (c == 2);
+      break;
+    case 'z':
+      // ping response
+      Serial.write('z');
+      Serial.write('\0');
+      break;
+    default:
+      SendDebugMessage("Got message I couldn't read");
+      SendDebugMessage(&messageType, 1);
+      //      char c = 1;
+      //      while (c != '\0') {
+      //        // keep reading until the message is over
+      //        c = Serial.read();
+      //        SendDebugMessage(&c, 1);
+      //      }
+      //      SendDebugMessage("Done sending bytes I couldn't read");
+      break; // we could error but for now just ignore it
+  }
+
+  // reset the incoming message
+  incomingSerialOffset = 0;
+}
+
+void HandleIncomingSerialNew() {
+  while (Serial.available()) {
+    // read in!
+    char c = Serial.read();
+    if (c == '\0') {
+      // finished a message!
+      incomingSerialBuffer[incomingSerialOffset] = '\0'; // make sure to end it with a \0
+      ExecuteFinishedSerial();
+    } else if (incomingSerialOffset == 0 && c == 'l') {
+      // incoming keywords that I need to handle
+      // Recieved keywords
+      // store that we're a townsperson and also what our keywords are and also tell the player
+      while (!Serial.available());
+      numCodewords = Serial.read();
+      numCodewords = min(numCodewords, 5);
+      // then readin  the codewords!
+      //      SendDebugMessage("entered read in codewords");
+      ReadInCodewords(numCodewords);
+      //      SendDebugMessage("done reading code words");
+      while (!Serial.available());
+      Serial.read(); // should be null character
+      isTownsperson = true;
+      isInitializedForGame = true;
+      DisplayCodewords();
+      SendDebugMessage("Got Townsfolk keywords");
+      break;
+    } else if (incomingSerialOffset == 0 && c == 'm') {
+      // incoming codewords that I need to handle
+      // Received code words
+      // store that we're a spy and also what our code words are and also tell the player
+      while (!Serial.available());
+      numCodewords = Serial.read();
+      numCodewords = min(numCodewords, 5);
+      // then read in the codewords!
+      //      SendDebugMessage("entered read in codewords");
+      ReadInCodewords(numCodewords);
+      //      SendDebugMessage("done reading code words");
+      while (!Serial.available());
+      Serial.read(); // should be null character
+
+      isTownsperson = false;
+      isInitializedForGame = true;
+      //      Serial.write('s');
+      //      for (int i = 0; i < numCodewords; i++) {
+      //        int c = 0;
+      //        while (codewords[i][c] != '\0') {
+      //          Serial.write(codewords[i][c]);
+      //          c++;
+      //        }
+      //      }
+      //      Serial.write('\n');
+      //      Serial.write('\0');
+      DisplayCodewords();
+      SendDebugMessage("Got Spy keywords");
+      break;
+    } else {
+      incomingSerialBuffer[incomingSerialOffset] = c;
+      incomingSerialOffset++;
+      if (incomingSerialOffset >= 65 * 3 + 8) {
+        // then it's probably erroring!
+        SendDebugMessage("ERROR: Receiving serial that's too long");
+        // it'll mess things up intensely so watch out for this error, but in reality it shouldn't happen
+      }
+    }
+  }
+}
+
 void HandleIncomingSerial() {
   char messageType = Serial.read();
 
@@ -570,6 +706,29 @@ void HandleIncomingSerial() {
   }
 }
 
+int ReadStringNewlineEndedFromBuffer(char buff[], char inputbuff[], int start) {
+  // buffer has to be 65 characters long, word outputs may only be 64 characters long.
+
+  int currWordLength = 0;
+  // read in this codeword
+  // codewords end in newlines
+  char c = inputbuff[start];
+  while (c != '\n' && c != '\0' && currWordLength < 64) {
+    // add it to the current word
+    buff[currWordLength] = c;
+    currWordLength++;
+    c = inputbuff[currWordLength+start];
+  }
+  
+  // if it's a newline, then we're set! For now just assume it's a newline I guess?
+  //    while (c != '\n' && c != '\0' ) {
+  //      // if it exited due to word length then read until we get the newline, this should never occur since we won't have too long codewords but just in case.
+  //      c = Serial.read();
+  //    }
+  buff[currWordLength] = '\0'; // end it!
+  return currWordLength;
+}
+
 int ReadStringNewlineEnded(char buff[]) {
   // buffer has to be 65 characters long, word outputs may only be 64 characters long.
 
@@ -618,8 +777,7 @@ void DisplayTrain(bool includeAnswer) {
 }
 
 void ReadInTrainMessages(bool includeAnswer) {
-  while (!Serial.available());
-  trainFrom = Serial.read();
+  trainFrom = incomingSerialBuffer[1];
   if (trainFrom == ARDUINO_ID) {
     createdTrains--;
     if (createdTrains < 0) {
@@ -627,12 +785,14 @@ void ReadInTrainMessages(bool includeAnswer) {
     }
     printer.println("Stopped one of your trains and thus are able to make another one!");
   }
-  while (!Serial.available());
-  trainTo = Serial.read();
-  leftWordLength = ReadStringNewlineEnded(leftWord);
-  leftWordLength = ReadStringNewlineEnded(rightWord);
+  trainTo = incomingSerialBuffer[2];
+  int offset = 3;
+  leftWordLength = ReadStringNewlineEndedFromBuffer(leftWord, incomingSerialBuffer, offset);
+  offset += leftWordLength;
+  rightWordLength = ReadStringNewlineEndedFromBuffer(rightWord, incomingSerialBuffer, offset);
+  offset += rightWordLength;
   if (includeAnswer) {
-    answerWordLength = ReadStringNewlineEnded(questionAnswer);
+    answerWordLength = ReadStringNewlineEndedFromBuffer(questionAnswer, incomingSerialBuffer, offset);
   } else {
     answerWordLength = 0;
     questionAnswer[0] = '\0';
@@ -667,22 +827,6 @@ void ReadInCodewords(int num) {
   // read in num codewords and store them in the list
   for (int i = 0; i < num; i++) {
     ReadStringNewlineEnded(codewords[i]);
-    //    int currWordLength = 0;
-    //    // read in this codeword
-    //    // codewords end in newlines
-    //    char c = Serial.read();
-    //    while (c != '\n' && currWordLength < 64) {
-    //      // add it to the current word
-    //      codewords[i][currWordLength] = c;
-    //      currWordLength++;
-    //      c = Serial.read();
-    //    }
-    //    // if it's a newline, then we're set! For now just assume it's a newline I guess?
-    //    while (c != '\n') {
-    //      // if it exited due to word length then read until we get the newline, this should never occur since we won't have too long codewords but just in case.
-    //      c = Serial.read();
-    //    }
-    //    codewords[i][currWordLength] = '\0'; // end it!
   }
   for (int i = num; i < 5; i++) {
     codewords[i][0] = '\0'; // destroy the other codewords.
@@ -853,7 +997,8 @@ void loop() {
   }
 
   if (Serial.available()) {
-    HandleIncomingSerial();
+    //    HandleIncomingSerial();
+    HandleIncomingSerialNew();
     // then echo the string back
     //    Serial.println("Recieved: " + Serial.readString());
   }
