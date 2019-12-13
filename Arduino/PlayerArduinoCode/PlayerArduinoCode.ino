@@ -798,9 +798,9 @@ void ReadInTrainMessages(bool includeAnswer) {
   trainTo = incomingSerialBuffer[2];
   int offset = 3;
   leftWordLength = ReadStringNewlineEndedFromBuffer(leftWord, incomingSerialBuffer, offset);
-  offset += leftWordLength;
-  rightWordLength = ReadStringNewlineEndedFromBuffer(rightWord, incomingSerialBuffer, offset);
-  offset += rightWordLength;
+  offset += leftWordLength + 1; // include the newline
+  leftWordLength = ReadStringNewlineEndedFromBuffer(rightWord, incomingSerialBuffer, offset);
+  offset += leftWordLength + 1; // include the newline
   if (includeAnswer) {
     answerWordLength = ReadStringNewlineEndedFromBuffer(questionAnswer, incomingSerialBuffer, offset);
   } else {
